@@ -1,0 +1,89 @@
+# Roadmap
+
+Planned features and improvements for hittyping.
+
+## Planned
+
+### v0.4.0 - Protocol Options
+
+- [ ] `-insecure` / `-k` flag to skip TLS certificate verification
+- [ ] `-http` flag to use plain HTTP instead of HTTPS (faster, no encryption)
+- [ ] Update legend/header to indicate protocol in use
+
+### v0.5.0 - HTTP/3 Support (Optional)
+
+- [ ] HTTP/3 (QUIC) support via `-http3` flag
+- [ ] Build tag `http3` to optionally include quic-go dependency
+- [ ] Default build remains dependency-free and small
+
+## Ideas / Under Consideration
+
+- [ ] DNS resolution timing breakdown (separate from HTTP RTT)
+- [ ] TCP connection timing vs TLS handshake vs HTTP response
+- [ ] JSON output mode for scripting
+- [ ] Configuration file support (~/.config/hittyping.toml)
+- [ ] Multiple targets in parallel
+
+---
+
+## HTTP/3 Implementation Notes
+
+### The quic-go Dependency
+
+HTTP/3 requires `github.com/quic-go/quic-go` - the reference Go implementation of QUIC.
+
+**Pros:**
+- 0-RTT connection establishment (faster first request)
+- Better performance on lossy/mobile networks
+- Built-in TLS 1.3
+- Well-maintained (used by Caddy, Traefik, Cloudflare)
+- Pure Go (no CGO required)
+
+**Cons:**
+- **Binary size**: +10-15MB (current ~8MB → ~20MB with HTTP/3)
+- **Compile time**: Noticeably longer
+- **Transitive dependencies**: Pulls in crypto, x509, and other packages
+- **Server support**: Not all servers support HTTP/3 yet
+
+### Proposed Implementation
+
+Use Go build tags to make HTTP/3 optional:
+
+```go
+// http3.go
+//go:build http3
+
+package main
+
+import "github.com/quic-go/quic-go/http3"
+// HTTP/3 client implementation
+```
+
+```go
+// http3_stub.go
+//go:build !http3
+
+package main
+
+// Stub that returns error "HTTP/3 not compiled in, rebuild with -tags http3"
+```
+
+**Build commands:**
+```bash
+# Default build (no HTTP/3, small binary)
+go build -o hittyping .
+
+# With HTTP/3 support (larger binary)
+go build -tags http3 -o hittyping-http3 .
+```
+
+**justfile recipes:**
+```just
+build:
+    go build -o hittyping .
+
+build-http3:
+    go build -tags http3 -o hittyping-http3 .
+```
+
+This approach keeps the default binary small and dependency-free while allowing users who need HTTP/3 to opt-in.
