@@ -11,6 +11,7 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -46,6 +47,22 @@ func getEnvInt(key string, def int64) int64 {
 	return def
 }
 
+// getTermWidth returns terminal width, defaulting to 80
+func getTermWidth() int {
+	type winsize struct {
+		Row, Col, Xpixel, Ypixel uint16
+	}
+	var ws winsize
+	_, _, _ = syscall.Syscall(syscall.SYS_IOCTL,
+		uintptr(syscall.Stdout),
+		uintptr(syscall.TIOCGWINSZ),
+		uintptr(unsafe.Pointer(&ws)))
+	if ws.Col == 0 {
+		return 80
+	}
+	return int(ws.Col)
+}
+
 type stats struct {
 	count    int
 	failures int
@@ -53,7 +70,7 @@ type stats struct {
 	min      time.Duration
 	max      time.Duration
 	last     time.Duration
-	bar      strings.Builder
+	blocks   []string // individual blocks for proper width handling
 }
 
 func main() {
@@ -122,7 +139,7 @@ func main() {
 		rtt, err := measureRTT(client, url)
 		if err != nil {
 			s.failures++
-			s.bar.WriteString(gray + "×" + reset)
+			s.blocks = append(s.blocks, gray+"×"+reset)
 		} else {
 			s.count++
 			s.total += rtt
@@ -133,7 +150,7 @@ func main() {
 			if rtt > s.max {
 				s.max = rtt
 			}
-			s.bar.WriteString(getBlock(rtt))
+			s.blocks = append(s.blocks, getBlock(rtt))
 		}
 		printDisplay(s)
 		time.Sleep(*interval)
@@ -216,9 +233,24 @@ func printDisplay(s *stats) {
 		minMs = 0
 	}
 
-	// Bar line
-	fmt.Printf("%s%s%s", col0, clearLn, s.bar.String())
-	// Move down, print stats, move back up
+	// Get terminal width and calculate visible blocks
+	width := getTermWidth()
+	visibleCount := len(s.blocks)
+	startIdx := 0
+	if visibleCount > width-1 {
+		startIdx = visibleCount - (width - 1)
+		visibleCount = width - 1
+	}
+
+	// Build visible bar
+	var bar strings.Builder
+	for i := startIdx; i < startIdx+visibleCount; i++ {
+		bar.WriteString(s.blocks[i])
+	}
+
+	// Bar line with cursor at end
+	fmt.Printf("%s%s%s", col0, clearLn, bar.String())
+	// Move down, print stats, move back up to end of bar
 	fmt.Printf("%s%s%s%d/%s%d%s %s(%2d%%) lost;%s %d/%s%d%s/%d%sms; last:%s %s%d%s%sms%s%s",
 		down, col0, clearLn,
 		s.failures, bold, total, reset,
@@ -226,6 +258,8 @@ func printDisplay(s *stats) {
 		minMs, bold, avg.Milliseconds(), reset, s.max.Milliseconds(), gray, reset,
 		bold, s.last.Milliseconds(), reset, gray, reset,
 		up)
+	// Move cursor to end of bar (column = visible blocks + 1)
+	fmt.Printf("\033[%dG", visibleCount+1)
 }
 
 func printFinal(url string, s *stats) {
