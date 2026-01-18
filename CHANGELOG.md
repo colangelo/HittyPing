@@ -2,6 +2,17 @@
 
 All notable changes to hp (formerly hittyping) will be documented in this file.
 
+## [0.5.1] - 2025-01-18
+
+### Added
+
+- `-v/--version` flag to show version and exit
+- `-h/--help` flag (provided by pflag)
+
+### Changed
+
+- Version output now shows former name: `hp (hittyping) version X.Y.Z`
+
 ## [0.5.0] - 2025-01-18
 
 ### Added

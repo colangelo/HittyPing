@@ -4,6 +4,11 @@ Planned features and improvements for hp.
 
 ## Completed
 
+### v0.5.1 - CLI Polish (DONE)
+
+- [x] `-v/--version` flag
+- [x] Version output includes former name: `hp (hittyping) version X.Y.Z`
+
 ### v0.5.0 - HTTP/3 Support (DONE)
 
 - [x] HTTP/3 (QUIC) support via `--http3` flag
