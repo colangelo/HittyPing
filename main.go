@@ -87,6 +87,7 @@ func main() {
 	yellowFlag := flag.Int64P("yellow", "y", 0, "yellow threshold in ms (env: HP_YELLOW)")
 	insecure := flag.BoolP("insecure", "k", false, "skip TLS certificate verification")
 	useHTTP := flag.Bool("http", false, "use plain HTTP instead of HTTPS")
+	useHTTP3 := flag.Bool("http3", false, "use HTTP/3 (QUIC) - requires build with -tags http3")
 	flag.Parse()
 
 	// Apply thresholds: env vars first, flags override
@@ -132,10 +133,24 @@ func main() {
 		os.Exit(0)
 	}()
 
+	// Check HTTP/3 availability
+	if *useHTTP3 {
+		if !http3Available {
+			fmt.Fprintln(os.Stderr, "HTTP/3 not compiled in. Rebuild with: go build -tags http3")
+			os.Exit(1)
+		}
+		if *useHTTP {
+			fmt.Fprintln(os.Stderr, "Cannot use --http with --http3")
+			os.Exit(1)
+		}
+	}
+
 	// Determine protocol for display
 	protocol := "HTTPS"
 	if *useHTTP {
 		protocol = "HTTP"
+	} else if *useHTTP3 {
+		protocol = "HTTP/3"
 	}
 
 	// Print header
@@ -147,17 +162,23 @@ func main() {
 	fmt.Println() // Reserve stats line
 	fmt.Print(up) // Move back to bar line
 
-	client := &http.Client{
-		Timeout: *timeout,
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: *insecure,
+	// Create HTTP client based on protocol choice
+	var client *http.Client
+	if *useHTTP3 {
+		client = newHTTP3Client(*timeout, *insecure)
+	} else {
+		client = &http.Client{
+			Timeout: *timeout,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: *insecure,
+				},
+				DisableKeepAlives: true,
 			},
-			DisableKeepAlives: true,
-		},
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		}
 	}
 
 	for {
