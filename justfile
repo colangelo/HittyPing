@@ -1,4 +1,4 @@
-# hittyping - prettyping-style HTTPS latency monitor
+# hp - prettyping-style HTTP(S) latency monitor
 
 # Default: list available commands
 default:
@@ -6,17 +6,17 @@ default:
 
 # Build the binary
 build:
-    go build -o hittyping .
+    go build -o hp .
 
 # Install to /usr/local/bin (with ad-hoc signing for macOS)
 install: build
-    sudo cp hittyping /usr/local/bin/
-    sudo codesign --force --sign - /usr/local/bin/hittyping
+    sudo cp hp /usr/local/bin/
+    sudo codesign --force --sign - /usr/local/bin/hp
 
 # Build and run with default target
 run *ARGS: build
-    ./hittyping {{ARGS}}
+    ./hp {{ARGS}}
 
 # Clean build artifacts
 clean:
-    rm -f hittyping
+    rm -f hp

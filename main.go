@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/tls"
-	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,6 +11,8 @@ import (
 	"syscall"
 	"time"
 	"unsafe"
+
+	flag "github.com/spf13/pflag"
 )
 
 const (
@@ -78,18 +79,20 @@ type stats struct {
 }
 
 func main() {
-	interval := flag.Duration("i", time.Second, "interval between requests")
-	timeout := flag.Duration("t", 5*time.Second, "request timeout")
-	noLegend := flag.Bool("nolegend", false, "hide the legend line")
-	minFlag := flag.Int64("min", 0, "min latency baseline in ms (env: HITTYPING_MIN)")
-	greenFlag := flag.Int64("green", 0, "green threshold in ms (env: HITTYPING_GREEN)")
-	yellowFlag := flag.Int64("yellow", 0, "yellow threshold in ms (env: HITTYPING_YELLOW)")
+	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
+	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
+	noLegend := flag.BoolP("nolegend", "n", false, "hide the legend line")
+	minFlag := flag.Int64P("min", "m", 0, "min latency baseline in ms (env: HP_MIN)")
+	greenFlag := flag.Int64P("green", "g", 0, "green threshold in ms (env: HP_GREEN)")
+	yellowFlag := flag.Int64P("yellow", "y", 0, "yellow threshold in ms (env: HP_YELLOW)")
+	insecure := flag.BoolP("insecure", "k", false, "skip TLS certificate verification")
+	useHTTP := flag.Bool("http", false, "use plain HTTP instead of HTTPS")
 	flag.Parse()
 
 	// Apply thresholds: env vars first, flags override
-	minLatency = getEnvInt("HITTYPING_MIN", minLatency)
-	greenThreshold = getEnvInt("HITTYPING_GREEN", greenThreshold)
-	yellowThreshold = getEnvInt("HITTYPING_YELLOW", yellowThreshold)
+	minLatency = getEnvInt("HP_MIN", minLatency)
+	greenThreshold = getEnvInt("HP_GREEN", greenThreshold)
+	yellowThreshold = getEnvInt("HP_YELLOW", yellowThreshold)
 	if *minFlag > 0 {
 		minLatency = *minFlag
 	}
@@ -103,9 +106,16 @@ func main() {
 	url := "https://1.1.1.1"
 	if flag.NArg() > 0 {
 		url = flag.Arg(0)
-		if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		if *useHTTP {
+			// Force HTTP
+			url = strings.TrimPrefix(url, "https://")
+			url = strings.TrimPrefix(url, "http://")
+			url = "http://" + url
+		} else if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
 			url = "https://" + url
 		}
+	} else if *useHTTP {
+		url = "http://1.1.1.1"
 	}
 
 	// Display URL without scheme
@@ -122,8 +132,14 @@ func main() {
 		os.Exit(0)
 	}()
 
+	// Determine protocol for display
+	protocol := "HTTPS"
+	if *useHTTP {
+		protocol = "HTTP"
+	}
+
 	// Print header
-	fmt.Printf("%sHITTYPING %s%s\n", gray, displayURL, reset)
+	fmt.Printf("%sHP %s %s(%s)%s\n", gray, displayURL, gray, protocol, reset)
 	if !*noLegend {
 		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
 			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
@@ -135,7 +151,7 @@ func main() {
 		Timeout: *timeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: false,
+				InsecureSkipVerify: *insecure,
 			},
 			DisableKeepAlives: true,
 		},
@@ -300,7 +316,7 @@ func printFinal(url string, s *stats) {
 		minMs = 0
 	}
 
-	fmt.Printf("\n\n%s--- %s hittyping statistics ---%s\n", gray, url, reset)
+	fmt.Printf("\n\n%s--- %s hp statistics ---%s\n", gray, url, reset)
 	fmt.Printf("%d requests, %d ok, %d failed, %d%% loss\n", total, s.count, s.failures, lossPct)
 	if s.count > 0 {
 		fmt.Printf("round-trip min/avg/max = %d/%d/%d ms\n", minMs, avg.Milliseconds(), s.max.Milliseconds())
