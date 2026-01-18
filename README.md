@@ -27,12 +27,14 @@ just install-http3
 ```bash
 hp                              # Default: https://1.1.1.1
 hp cloudflare.com               # Custom target (https:// auto-added)
+hp -c 10 cloudflare.com         # Send 10 requests then exit
 hp -i 500ms cloudflare.com      # 500ms interval
 hp -t 3s cloudflare.com         # 3 second timeout
 hp -n cloudflare.com            # Hide legend
 hp -k https://self-signed.test  # Skip TLS verification
-hp --http httpbin.org           # Plain HTTP
-hp --http3 cloudflare.com       # HTTP/3 (QUIC) - requires http3 build
+hp -1 httpbin.org               # Force HTTP/1.1 (plain HTTP)
+hp -2 cloudflare.com            # Force HTTP/2 (fail if not negotiated)
+hp -3 cloudflare.com            # HTTP/3 (QUIC) - requires http3 build
 hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 ```
 
@@ -40,6 +42,7 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 
 | Flag | Long | Env Var | Default | Description |
 |------|------|---------|---------|-------------|
+| `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
 | `-t` | `--timeout` | | 5s | Request timeout |
 | `-n` | `--nolegend` | | false | Hide legend line |
@@ -47,8 +50,9 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 | `-g` | `--green` | `HP_GREEN` | 150 | Green threshold (ms) |
 | `-y` | `--yellow` | `HP_YELLOW` | 400 | Yellow threshold (ms) |
 | `-k` | `--insecure` | | false | Skip TLS certificate verification |
-| | `--http` | | false | Use plain HTTP instead of HTTPS |
-| | `--http3` | | false | Use HTTP/3 (requires http3 build) |
+| `-1` | `--http` | | false | Use plain HTTP/1.1 |
+| `-2` | `--http2` | | false | Force HTTP/2 (fail if not negotiated) |
+| `-3` | `--http3` | | false | Use HTTP/3 (requires http3 build) |
 | `-v` | `--version` | | | Show version |
 | `-h` | `--help` | | | Show help |
 

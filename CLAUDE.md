@@ -29,12 +29,14 @@ go build -tags http3 -o hp .    # With HTTP/3 support
 ```bash
 hp                                    # Default: https://1.1.1.1
 hp dns.nextdns.io                     # Custom target (https:// auto-added)
+hp -c 10 dns.nextdns.io               # Send 10 requests then exit
 hp -i 500ms dns.nextdns.io            # 500ms interval (or --interval)
 hp -t 3s cloudflare.com               # 3 second timeout (or --timeout)
 hp -n dns.nextdns.io                  # Hide legend (or --nolegend)
 hp -k https://self-signed.example     # Skip TLS verification (or --insecure)
-hp --http example.com                 # Use plain HTTP instead of HTTPS
-hp --http3 cloudflare.com             # Use HTTP/3 (QUIC) - requires http3 build
+hp -1 example.com                     # Use plain HTTP/1.1 (or --http)
+hp -2 cloudflare.com                  # Force HTTP/2 (or --http2)
+hp -3 cloudflare.com                  # Use HTTP/3 (or --http3) - requires http3 build
 hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 ```
 
@@ -42,6 +44,7 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 
 | Short | Long | Env Var | Default | Description |
 |-------|------|---------|---------|-------------|
+| `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
 | `-t` | `--timeout` | | 5s | Request timeout |
 | `-n` | `--nolegend` | | false | Hide legend line |
@@ -49,8 +52,9 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 | `-g` | `--green` | `HP_GREEN` | 150 | Green threshold (ms) |
 | `-y` | `--yellow` | `HP_YELLOW` | 400 | Yellow threshold (ms) |
 | `-k` | `--insecure` | | false | Skip TLS verification |
-| | `--http` | | false | Use plain HTTP |
-| | `--http3` | | false | Use HTTP/3 (requires http3 build tag) |
+| `-1` | `--http` | | false | Use plain HTTP/1.1 |
+| `-2` | `--http2` | | false | Force HTTP/2 (fail if not negotiated) |
+| `-3` | `--http3` | | false | Use HTTP/3 (requires http3 build tag) |
 | `-v` | `--version` | | | Show version and exit |
 | `-h` | `--help` | | | Show help and exit |
 

@@ -15,7 +15,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const version = "0.5.1"
+const version = "0.6.0"
 
 const (
 	// ANSI colors
@@ -83,13 +83,15 @@ type stats struct {
 func main() {
 	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
 	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
+	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
 	noLegend := flag.BoolP("nolegend", "n", false, "hide the legend line")
 	minFlag := flag.Int64P("min", "m", 0, "min latency baseline in ms (env: HP_MIN)")
 	greenFlag := flag.Int64P("green", "g", 0, "green threshold in ms (env: HP_GREEN)")
 	yellowFlag := flag.Int64P("yellow", "y", 0, "yellow threshold in ms (env: HP_YELLOW)")
 	insecure := flag.BoolP("insecure", "k", false, "skip TLS certificate verification")
-	useHTTP := flag.Bool("http", false, "use plain HTTP instead of HTTPS")
-	useHTTP3 := flag.Bool("http3", false, "use HTTP/3 (QUIC) - requires build with -tags http3")
+	useHTTP1 := flag.BoolP("http", "1", false, "use plain HTTP/1.1")
+	useHTTP2 := flag.BoolP("http2", "2", false, "force HTTP/2 (fail if not negotiated)")
+	useHTTP3 := flag.BoolP("http3", "3", false, "use HTTP/3 (QUIC) - requires build with -tags http3")
 	showVersion := flag.BoolP("version", "v", false, "show version and exit")
 	flag.Parse()
 
@@ -115,15 +117,15 @@ func main() {
 	url := "https://1.1.1.1"
 	if flag.NArg() > 0 {
 		url = flag.Arg(0)
-		if *useHTTP {
-			// Force HTTP
+		if *useHTTP1 {
+			// Force HTTP/1.1
 			url = strings.TrimPrefix(url, "https://")
 			url = strings.TrimPrefix(url, "http://")
 			url = "http://" + url
 		} else if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
 			url = "https://" + url
 		}
-	} else if *useHTTP {
+	} else if *useHTTP1 {
 		url = "http://1.1.1.1"
 	}
 
@@ -141,22 +143,34 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// Check HTTP/3 availability
+	// Validate protocol flags (mutually exclusive)
+	protoCount := 0
+	if *useHTTP1 {
+		protoCount++
+	}
+	if *useHTTP2 {
+		protoCount++
+	}
 	if *useHTTP3 {
-		if !http3Available {
-			fmt.Fprintln(os.Stderr, "HTTP/3 not compiled in. Rebuild with: go build -tags http3")
-			os.Exit(1)
-		}
-		if *useHTTP {
-			fmt.Fprintln(os.Stderr, "Cannot use --http with --http3")
-			os.Exit(1)
-		}
+		protoCount++
+	}
+	if protoCount > 1 {
+		fmt.Fprintln(os.Stderr, "Cannot combine -1/--http, -2/--http2, and -3/--http3")
+		os.Exit(1)
+	}
+
+	// Check HTTP/3 availability
+	if *useHTTP3 && !http3Available {
+		fmt.Fprintln(os.Stderr, "HTTP/3 not compiled in. Rebuild with: go build -tags http3")
+		os.Exit(1)
 	}
 
 	// Determine protocol for display
 	protocol := "HTTPS"
-	if *useHTTP {
-		protocol = "HTTP"
+	if *useHTTP1 {
+		protocol = "HTTP/1.1"
+	} else if *useHTTP2 {
+		protocol = "HTTP/2"
 	} else if *useHTTP3 {
 		protocol = "HTTP/3"
 	}
@@ -175,22 +189,27 @@ func main() {
 	if *useHTTP3 {
 		client = newHTTP3Client(*timeout, *insecure)
 	} else {
-		client = &http.Client{
-			Timeout: *timeout,
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: *insecure,
-				},
-				DisableKeepAlives: true,
+		transport := &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: *insecure,
 			},
+			DisableKeepAlives: true,
+		}
+		if *useHTTP2 {
+			transport.ForceAttemptHTTP2 = true
+		}
+		client = &http.Client{
+			Timeout:   *timeout,
+			Transport: transport,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return http.ErrUseLastResponse
 			},
 		}
 	}
 
+	requestNum := 0
 	for {
-		rtt, err := measureRTT(client, url)
+		rtt, err := measureRTT(client, url, *useHTTP2)
 		if err != nil {
 			s.failures++
 			s.blocks = append(s.blocks, red+bold+"!"+reset)
@@ -207,11 +226,16 @@ func main() {
 			s.blocks = append(s.blocks, getBlock(rtt))
 		}
 		printDisplay(s)
+		requestNum++
+		if *count > 0 && requestNum >= *count {
+			printFinal(displayURL, s)
+			os.Exit(0)
+		}
 		time.Sleep(*interval)
 	}
 }
 
-func measureRTT(client *http.Client, url string) (time.Duration, error) {
+func measureRTT(client *http.Client, url string, requireHTTP2 bool) (time.Duration, error) {
 	req, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
 		return 0, err
@@ -225,6 +249,11 @@ func measureRTT(client *http.Client, url string) (time.Duration, error) {
 		return 0, err
 	}
 	resp.Body.Close()
+
+	// Check HTTP/2 requirement
+	if requireHTTP2 && resp.Proto != "HTTP/2.0" {
+		return 0, fmt.Errorf("HTTP/2 not negotiated (got %s)", resp.Proto)
+	}
 
 	return elapsed, nil
 }

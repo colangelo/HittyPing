@@ -4,6 +4,13 @@ Planned features and improvements for hp.
 
 ## Completed
 
+### v0.6.0 - Protocol Shortcuts & Count (DONE)
+
+- [x] `-1` shorthand for `--http` (HTTP/1.1)
+- [x] `-2/--http2` flag to force HTTP/2 (fail if not negotiated)
+- [x] `-3` shorthand for `--http3` (QUIC)
+- [x] `-c/--count` flag to limit number of requests (like `ping -c`)
+
 ### v0.5.1 - CLI Polish (DONE)
 
 - [x] `-v/--version` flag
@@ -26,13 +33,6 @@ Planned features and improvements for hp.
 - [x] Header shows protocol in use: `HP host (HTTPS)`
 
 ## Planned
-
-### v0.6.0 - Protocol Shortcuts & Count
-
-- [ ] `-1` shorthand for `--http` (HTTP/1.1)
-- [ ] `-2/--http2` flag to force HTTP/2 (fail if not negotiated)
-- [ ] `-3` shorthand for `--http3` (QUIC)
-- [ ] `-c/--count` flag to limit number of requests (like `ping -c`)
 
 ## Ideas / Under Consideration
 

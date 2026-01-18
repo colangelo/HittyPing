@@ -2,6 +2,20 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.6.0] - 2025-01-18
+
+### Added
+
+- `-1` shorthand for `--http` (HTTP/1.1)
+- `-2/--http2` flag to force HTTP/2 (fails if not negotiated)
+- `-3` shorthand for `--http3` (QUIC)
+- `-c/--count` flag to limit number of requests (like `ping -c`)
+
+### Changed
+
+- Protocol flags are now mutually exclusive
+- `--http` display changed from "HTTP" to "HTTP/1.1"
+
 ## [0.5.1] - 2025-01-18
 
 ### Added
