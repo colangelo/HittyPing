@@ -125,8 +125,8 @@ func main() {
 	// Print header
 	fmt.Printf("%sHITTYPING %s%s\n", gray, displayURL, reset)
 	if !*noLegend {
-		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s×%sfail%s\n",
-			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, gray, reset, reset)
+		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
+			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
 	}
 	fmt.Println() // Reserve stats line
 	fmt.Print(up) // Move back to bar line
@@ -148,7 +148,7 @@ func main() {
 		rtt, err := measureRTT(client, url)
 		if err != nil {
 			s.failures++
-			s.blocks = append(s.blocks, gray+"×"+reset)
+			s.blocks = append(s.blocks, red+bold+"!"+reset)
 		} else {
 			s.count++
 			s.total += rtt
@@ -260,17 +260,17 @@ func printDisplay(s *stats) {
 
 	width := getTermWidth()
 
-	// Check if we need to wrap to next line
-	if s.col >= width-1 {
-		// Move to stats line, print newline to scroll, move back up, clear line
-		fmt.Print(down + "\n" + up + col0 + clearLn)
-		s.col = 0
-	}
-
 	// Print just the latest block (incremental)
 	if len(s.blocks) > 0 {
 		fmt.Print(s.blocks[len(s.blocks)-1])
 		s.col++
+	}
+
+	// Check if we need to wrap to next line for the NEXT block
+	if s.col >= width-1 {
+		// Move to stats line, print newline to scroll, move back up, clear line
+		fmt.Print(down + "\n" + up + col0 + clearLn)
+		s.col = 0
 	}
 
 	// Save cursor, print stats below, restore cursor
