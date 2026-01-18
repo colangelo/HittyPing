@@ -9,6 +9,17 @@ Legend: ▁▂▃<150ms ▄▅<400ms ▆▇█>=400ms !fail
 0/20 ( 0%) lost; 32/45/98ms; last: 41ms
 ```
 
+## Features
+
+- Prettyping-style Unicode block visualization
+- Color-coded latency (green/yellow/red)
+- Live min/avg/max statistics
+- Protocol selection: HTTP/1.1 (`-1`), HTTP/2 (`-2`), HTTP/3 (`-3`)
+- Request count limit (`-c`) like `ping -c`
+- Configurable thresholds via flags or env vars
+- Optional HTTP/3 (QUIC) support via build tags
+- Graceful Ctrl+C with final summary
+
 ## Installation
 
 ```bash
