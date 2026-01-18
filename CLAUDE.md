@@ -51,6 +51,8 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 | `-k` | `--insecure` | | false | Skip TLS verification |
 | | `--http` | | false | Use plain HTTP |
 | | `--http3` | | false | Use HTTP/3 (requires http3 build tag) |
+| `-v` | `--version` | | | Show version and exit |
+| `-h` | `--help` | | | Show help and exit |
 
 ## Architecture
 
