@@ -3,10 +3,11 @@
 HittyPing is a prettyping-style HTTP(S) latency monitor. Visualizes response times using Unicode block characters with color coding.
 
 ```
-HP dns.nextdns.io (HTTPS)
+❯ hp --http3 dns.google                                                                                                        01/18 23:59:55
+HP dns.google (HTTP/3)
 Legend: ▁▂▃<150ms ▄▅<400ms ▆▇█>=400ms !fail
-▁▁▂▁▂▃▁▁▂▁▁▁▃▂▁▁▁▂▁▁
-0/20 ( 0%) lost; 32/45/98ms; last: 41ms
+▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+0/20 ( 0%) lost; 24/35/222ms; last: 25ms
 ```
 
 ## Features
@@ -41,7 +42,7 @@ hp cloudflare.com               # Custom target (https:// auto-added)
 hp -c 10 cloudflare.com         # Send 10 requests then exit
 hp -i 500ms cloudflare.com      # 500ms interval
 hp -t 3s cloudflare.com         # 3 second timeout
-hp -n cloudflare.com            # Hide legend
+hp -q cloudflare.com            # Quiet mode (hide legend)
 hp -k https://self-signed.test  # Skip TLS verification
 hp -1 httpbin.org               # Force HTTP/1.1 (plain HTTP)
 hp -2 cloudflare.com            # Force HTTP/2 (fail if not negotiated)
@@ -56,7 +57,7 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 | `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
 | `-t` | `--timeout` | | 5s | Request timeout |
-| `-n` | `--nolegend` | | false | Hide legend line |
+| `-q` | `--nolegend` | | false | Quiet mode (hide legend) |
 | `-m` | `--min` | `HP_MIN` | 0 | Min latency baseline (ms) |
 | `-g` | `--green` | `HP_GREEN` | 150 | Green threshold (ms) |
 | `-y` | `--yellow` | `HP_YELLOW` | 400 | Yellow threshold (ms) |
