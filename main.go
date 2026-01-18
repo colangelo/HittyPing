@@ -26,6 +26,8 @@ const (
 	up      = "\033[A"
 	down    = "\033[B"
 	col0    = "\033[0G"
+	saveCur = "\033[s"
+	restCur = "\033[u"
 )
 
 // Unicode block characters for visualization
@@ -72,6 +74,7 @@ type stats struct {
 	max      time.Duration
 	last     time.Duration
 	blocks   []string // individual blocks for proper width handling
+	col      int      // current column position on bar line
 }
 
 func main() {
@@ -256,38 +259,28 @@ func printDisplay(s *stats) {
 	}
 
 	width := getTermWidth()
-	maxPerLine := width - 1
 
-	// Calculate current line's blocks
-	currentLineStart := (len(s.blocks) / maxPerLine) * maxPerLine
-	currentLineBlocks := s.blocks[currentLineStart:]
-
-	// Check if we just wrapped to a new line
-	if len(currentLineBlocks) == 1 && len(s.blocks) > 1 {
-		// We just started a new line - scroll down
-		fmt.Printf("%s\n%s", down, up)
+	// Check if we need to wrap to next line
+	if s.col >= width-1 {
+		// Move to stats line and print newline to scroll/wrap
+		fmt.Print(down + "\n" + up)
+		s.col = 0
 	}
 
-	// Build and print current line
-	var bar strings.Builder
-	for _, b := range currentLineBlocks {
-		bar.WriteString(b)
+	// Print just the latest block (incremental)
+	if len(s.blocks) > 0 {
+		fmt.Print(s.blocks[len(s.blocks)-1])
+		s.col++
 	}
 
-	// Print bar line
-	fmt.Printf("%s%s%s", col0, clearLn, bar.String())
-
-	// Move down, print stats, move back up
-	fmt.Printf("%s%s%s%d/%s%d%s %s(%2d%%) lost;%s %d/%s%d%s/%d%sms; last:%s %s%d%s%sms%s%s",
-		down, col0, clearLn,
+	// Save cursor, print stats below, restore cursor
+	fmt.Printf("%s%s%s%s%d/%s%d%s %s(%2d%%) lost;%s %d/%s%d%s/%d%sms; last:%s %s%d%s%sms%s%s",
+		saveCur, down, col0, clearLn,
 		s.failures, bold, total, reset,
 		gray, lossPct, reset,
 		minMs, bold, avg.Milliseconds(), reset, s.max.Milliseconds(), gray, reset,
 		bold, s.last.Milliseconds(), reset, gray, reset,
-		up)
-
-	// Position cursor after the bar
-	fmt.Printf("\033[%dG", len(currentLineBlocks)+1)
+		restCur)
 }
 
 func printFinal(url string, s *stats) {
