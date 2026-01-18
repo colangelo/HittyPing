@@ -42,6 +42,7 @@ type stats struct {
 func main() {
 	interval := flag.Duration("i", time.Second, "interval between requests")
 	timeout := flag.Duration("t", 5*time.Second, "request timeout")
+	noLegend := flag.Bool("nolegend", false, "hide the legend line")
 	flag.Parse()
 
 	url := "https://1.1.1.1"
@@ -52,6 +53,9 @@ func main() {
 		}
 	}
 
+	// Display URL without scheme
+	displayURL := strings.TrimPrefix(strings.TrimPrefix(url, "https://"), "http://")
+
 	s := &stats{min: time.Hour}
 
 	// Handle Ctrl+C
@@ -59,14 +63,16 @@ func main() {
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigCh
-		printFinal(url, s)
+		printFinal(displayURL, s)
 		os.Exit(0)
 	}()
 
 	// Print header
-	fmt.Printf("%sHITTYPING %s%s\n", gray, url, reset)
-	fmt.Printf("%sLegend: %s▁▂▃%s<150ms %s▄▅%s<400ms %s▆▇█%s>400ms %s×%sfail%s\n",
-		gray, green, reset, yellow, reset, red, reset, gray, reset, reset)
+	fmt.Printf("%sHITTYPING %s%s\n", gray, displayURL, reset)
+	if !*noLegend {
+		fmt.Printf("%sLegend: %s▁▂▃%s<150ms %s▄▅%s<400ms %s▆▇█%s>400ms %s×%sfail%s\n",
+			gray, green, reset, yellow, reset, red, reset, gray, reset, reset)
+	}
 	fmt.Println() // Reserve stats line
 	fmt.Print(up) // Move back to bar line
 
