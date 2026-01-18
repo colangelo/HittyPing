@@ -2,6 +2,24 @@
 
 All notable changes to hp (formerly hittyping) will be documented in this file.
 
+## [0.5.0] - 2025-01-18
+
+### Added
+
+- HTTP/3 (QUIC) support via `--http3` flag
+- Build tag system for optional HTTP/3: `go build -tags http3`
+- New justfile recipes: `build-http3`, `install-http3`
+
+### Changed
+
+- Binary sizes: ~7.6MB (default) vs ~10MB (with HTTP/3)
+- Module renamed to `github.com/ac/hp`
+
+### Notes
+
+- HTTP/3 requires servers that support it (e.g., Cloudflare, Google)
+- First HTTP/3 request may be slower due to QUIC handshake
+
 ## [0.4.0] - 2025-01-18
 
 ### Breaking Changes

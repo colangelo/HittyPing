@@ -9,16 +9,19 @@ hp (formerly hittyping) is a prettyping-style HTTP(S) latency monitor written in
 ## Build Commands
 
 ```bash
-just build    # Build binary
-just install  # Build and install to /usr/local/bin
-just run      # Build and run with default target
-just clean    # Remove binary
+just build         # Build binary (~7.6MB)
+just build-http3   # Build with HTTP/3 support (~10MB)
+just install       # Build and install to /usr/local/bin
+just install-http3 # Build with HTTP/3 and install
+just run           # Build and run with default target
+just clean         # Remove binary
 ```
 
 Or directly with Go:
 
 ```bash
-go build -o hp .
+go build -o hp .                # Default build
+go build -tags http3 -o hp .    # With HTTP/3 support
 ```
 
 ## Usage
@@ -31,6 +34,7 @@ hp -t 3s cloudflare.com               # 3 second timeout (or --timeout)
 hp -n dns.nextdns.io                  # Hide legend (or --nolegend)
 hp -k https://self-signed.example     # Skip TLS verification (or --insecure)
 hp --http example.com                 # Use plain HTTP instead of HTTPS
+hp --http3 cloudflare.com             # Use HTTP/3 (QUIC) - requires http3 build
 hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 ```
 
@@ -46,6 +50,7 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 | `-y` | `--yellow` | `HP_YELLOW` | 400 | Yellow threshold (ms) |
 | `-k` | `--insecure` | | false | Skip TLS verification |
 | | `--http` | | false | Use plain HTTP |
+| | `--http3` | | false | Use HTTP/3 (requires http3 build tag) |
 
 ## Architecture
 

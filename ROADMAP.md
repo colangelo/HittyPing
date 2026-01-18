@@ -4,6 +4,13 @@ Planned features and improvements for hp.
 
 ## Completed
 
+### v0.5.0 - HTTP/3 Support (DONE)
+
+- [x] HTTP/3 (QUIC) support via `--http3` flag
+- [x] Build tag `http3` to optionally include quic-go dependency
+- [x] Default build remains small (~7.6MB), HTTP/3 build ~10MB
+- [x] `just build-http3` and `just install-http3` recipes
+
 ### v0.4.0 - Rename & Protocol Options (DONE)
 
 - [x] Rename binary: `hittyping` → `hp`
@@ -14,13 +21,6 @@ Planned features and improvements for hp.
 - [x] Header shows protocol in use: `HP host (HTTPS)`
 
 ## Planned
-
-### v0.5.0 - HTTP/3 Support (Optional)
-
-- [ ] HTTP/3 (QUIC) support via `--http3` flag
-- [ ] Build tag `http3` to optionally include quic-go dependency
-- [ ] Default build remains small (~8MB)
-- [ ] `just build-http3` recipe for HTTP/3-enabled binary
 
 ## Ideas / Under Consideration
 
