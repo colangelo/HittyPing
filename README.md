@@ -1,6 +1,6 @@
-# hp
+# hp - HittyPing
 
-A prettyping-style HTTP(S) latency monitor. Visualizes response times using Unicode block characters with color coding.
+HittyPing is a prettyping-style HTTP(S) latency monitor. Visualizes response times using Unicode block characters with color coding.
 
 ```
 HP dns.nextdns.io (HTTPS)
