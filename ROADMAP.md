@@ -36,6 +36,7 @@ Planned features and improvements for hp.
 
 ## Ideas / Under Consideration
 
+- [ ] `-j/--jitter` flag to add random variation to interval (anti-fingerprinting)
 - [ ] DNS resolution timing breakdown (separate from HTTP RTT)
 - [ ] TCP connection timing vs TLS handshake vs HTTP response
 - [ ] JSON output mode for scripting
