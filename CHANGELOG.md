@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to hp (formerly hittyping) will be documented in this file.
+All notable changes to hp (hittyping) will be documented in this file.
 
 ## [0.5.1] - 2025-01-18
 
