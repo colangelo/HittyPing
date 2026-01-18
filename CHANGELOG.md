@@ -1,0 +1,27 @@
+# Changelog
+
+All notable changes to hittyping will be documented in this file.
+
+## [0.2.0] - 2025-01-18
+
+### Added
+- `--nolegend` flag to hide the legend line for cleaner output
+- Ad-hoc code signing on macOS install to prevent Gatekeeper kills
+- justfile with `build`, `install`, `run`, and `clean` recipes
+- CLAUDE.md for repository guidance
+
+### Changed
+- Header now displays hostname without `https://` prefix
+- Final statistics also show clean hostname
+
+## [0.1.0] - 2025-01-18
+
+### Added
+- Initial release
+- HTTPS HEAD request latency monitoring
+- prettyping-style Unicode block visualization (▁▂▃▄▅▆▇█)
+- Color-coded output: green (<150ms), yellow (<400ms), red (>400ms)
+- Live statistics: min/avg/max latency, packet loss percentage
+- Graceful Ctrl+C handling with final summary
+- Configurable interval (`-i`) and timeout (`-t`) flags
+- Auto-prepends `https://` to bare hostnames
