@@ -15,6 +15,8 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+const version = "0.5.0"
+
 const (
 	// ANSI colors
 	green   = "\033[32m"
@@ -88,7 +90,13 @@ func main() {
 	insecure := flag.BoolP("insecure", "k", false, "skip TLS certificate verification")
 	useHTTP := flag.Bool("http", false, "use plain HTTP instead of HTTPS")
 	useHTTP3 := flag.Bool("http3", false, "use HTTP/3 (QUIC) - requires build with -tags http3")
+	showVersion := flag.BoolP("version", "v", false, "show version and exit")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Printf("hp version %s\n", version)
+		os.Exit(0)
+	}
 
 	// Apply thresholds: env vars first, flags override
 	minLatency = getEnvInt("HP_MIN", minLatency)
