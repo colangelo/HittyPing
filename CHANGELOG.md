@@ -2,6 +2,12 @@
 
 All notable changes to hittyping will be documented in this file.
 
+## [0.3.1] - 2025-01-18
+
+### Changed
+- Failure symbol changed from gray `×` to red bold `!` (matches prettyping)
+- Fixed last block not appearing before line wrap
+
 ## [0.3.0] - 2025-01-18
 
 ### Added
