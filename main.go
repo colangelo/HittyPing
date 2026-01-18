@@ -262,8 +262,8 @@ func printDisplay(s *stats) {
 
 	// Check if we need to wrap to next line
 	if s.col >= width-1 {
-		// Move to stats line and print newline to scroll/wrap
-		fmt.Print(down + "\n" + up)
+		// Move to stats line, print newline to scroll, move back up, clear line
+		fmt.Print(down + "\n" + up + col0 + clearLn)
 		s.col = 0
 	}
 
