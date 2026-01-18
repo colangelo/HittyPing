@@ -65,13 +65,14 @@ func getTermWidth() int {
 }
 
 type stats struct {
-	count    int
-	failures int
-	total    time.Duration
-	min      time.Duration
-	max      time.Duration
-	last     time.Duration
-	blocks   []string // individual blocks for proper width handling
+	count      int
+	failures   int
+	total      time.Duration
+	min        time.Duration
+	max        time.Duration
+	last       time.Duration
+	blocks     []string // individual blocks for proper width handling
+	lineBlocks int      // blocks on current line
 }
 
 func main() {
@@ -255,24 +256,22 @@ func printDisplay(s *stats) {
 		minMs = 0
 	}
 
-	// Get terminal width and calculate visible blocks
 	width := getTermWidth()
-	visibleCount := len(s.blocks)
-	startIdx := 0
-	if visibleCount > width-1 {
-		startIdx = visibleCount - (width - 1)
-		visibleCount = width - 1
+
+	// Check if we need to wrap to next line
+	if s.lineBlocks >= width-1 {
+		// Move to stats line, print newline to scroll, move back up
+		fmt.Printf("%s\n%s", down, up)
+		s.lineBlocks = 0
 	}
 
-	// Build visible bar
-	var bar strings.Builder
-	for i := startIdx; i < startIdx+visibleCount; i++ {
-		bar.WriteString(s.blocks[i])
+	// Print just the latest block
+	if len(s.blocks) > 0 {
+		fmt.Print(s.blocks[len(s.blocks)-1])
+		s.lineBlocks++
 	}
 
-	// Bar line with cursor at end
-	fmt.Printf("%s%s%s", col0, clearLn, bar.String())
-	// Move down, print stats, move back up to end of bar
+	// Move down, print stats, move back up
 	fmt.Printf("%s%s%s%d/%s%d%s %s(%2d%%) lost;%s %d/%s%d%s/%d%sms; last:%s %s%d%s%sms%s%s",
 		down, col0, clearLn,
 		s.failures, bold, total, reset,
@@ -280,8 +279,6 @@ func printDisplay(s *stats) {
 		minMs, bold, avg.Milliseconds(), reset, s.max.Milliseconds(), gray, reset,
 		bold, s.last.Milliseconds(), reset, gray, reset,
 		up)
-	// Move cursor to end of bar (column = visible blocks + 1)
-	fmt.Printf("\033[%dG", visibleCount+1)
 }
 
 func printFinal(url string, s *stats) {
