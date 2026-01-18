@@ -2,6 +2,22 @@
 
 All notable changes to hittyping will be documented in this file.
 
+## [0.3.0] - 2025-01-18
+
+### Added
+- Configurable color thresholds via flags (`-green`, `-yellow`) and env vars (`HITTYPING_GREEN`, `HITTYPING_YELLOW`)
+- Minimum latency baseline (`-min` / `HITTYPING_MIN`) for smallest block scaling
+- Terminal width detection - bar now wraps to next line instead of truncating
+- Cursor follows the bar as it grows
+
+### Changed
+- Bar height now correlates with color zones:
+  - Green zone (< green threshold): ▁▂▃
+  - Yellow zone (green to yellow): ▄▅
+  - Red zone (>= yellow): ▆▇█
+- Legend displays actual threshold values
+- Previous bar lines preserved when wrapping to new line
+
 ## [0.2.0] - 2025-01-18
 
 ### Added
