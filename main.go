@@ -161,25 +161,39 @@ func measureRTT(client *http.Client, url string) (time.Duration, error) {
 func getBlock(rtt time.Duration) string {
 	ms := rtt.Milliseconds()
 
-	// Map RTT to block index (20-800ms range)
-	const minRTT, maxRTT = 20, 800
 	var idx int
-	if ms < minRTT {
-		idx = 0
-	} else if ms > maxRTT {
-		idx = 7
+	var color string
+
+	if ms < greenThreshold {
+		// Green zone: blocks 0-2 (▁▂▃)
+		color = green
+		idx = int(ms * 3 / greenThreshold)
+		if idx > 2 {
+			idx = 2
+		}
+	} else if ms < yellowThreshold {
+		// Yellow zone: blocks 3-4 (▄▅)
+		color = yellow
+		progress := ms - greenThreshold
+		span := yellowThreshold - greenThreshold
+		idx = 3 + int(progress*2/span)
+		if idx > 4 {
+			idx = 4
+		}
 	} else {
-		idx = int((ms - minRTT) * 7 / (maxRTT - minRTT))
+		// Red zone: blocks 5-7 (▆▇█)
+		color = red
+		// Scale red from yellowThreshold to 2x yellowThreshold
+		progress := ms - yellowThreshold
+		span := yellowThreshold // red zone spans another yellowThreshold worth
+		idx = 5 + int(progress*3/span)
+		if idx > 7 {
+			idx = 7
+		}
 	}
 
-	// Color based on latency thresholds
-	var color string
-	if ms < greenThreshold {
-		color = green
-	} else if ms < yellowThreshold {
-		color = yellow
-	} else {
-		color = red
+	if idx < 0 {
+		idx = 0
 	}
 
 	return color + blocks[idx] + reset
