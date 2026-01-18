@@ -176,7 +176,7 @@ func main() {
 	}
 
 	// Print header
-	fmt.Printf("%sHP %s %s(%s)%s\n", gray, displayURL, gray, protocol, reset)
+	fmt.Printf("%sHittyPing (v%s) %s (%s)%s\n", gray, version, displayURL, protocol, reset)
 	if !*noLegend {
 		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
 			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
