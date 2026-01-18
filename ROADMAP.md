@@ -1,27 +1,33 @@
 # Roadmap
 
-Planned features and improvements for hittyping.
+Planned features and improvements for hp.
+
+## Completed
+
+### v0.4.0 - Rename & Protocol Options (DONE)
+
+- [x] Rename binary: `hittyping` → `hp`
+- [x] Rename env vars: `HITTYPING_*` → `HP_*`
+- [x] Migrate to `spf13/pflag` for POSIX-style flags
+- [x] `-k/--insecure` flag to skip TLS certificate verification
+- [x] `--http` flag to use plain HTTP instead of HTTPS
+- [x] Header shows protocol in use: `HP host (HTTPS)`
 
 ## Planned
 
-### v0.4.0 - Protocol Options
-
-- [ ] `-insecure` / `-k` flag to skip TLS certificate verification
-- [ ] `-http` flag to use plain HTTP instead of HTTPS (faster, no encryption)
-- [ ] Update legend/header to indicate protocol in use
-
 ### v0.5.0 - HTTP/3 Support (Optional)
 
-- [ ] HTTP/3 (QUIC) support via `-http3` flag
+- [ ] HTTP/3 (QUIC) support via `--http3` flag
 - [ ] Build tag `http3` to optionally include quic-go dependency
-- [ ] Default build remains dependency-free and small
+- [ ] Default build remains small (~8MB)
+- [ ] `just build-http3` recipe for HTTP/3-enabled binary
 
 ## Ideas / Under Consideration
 
 - [ ] DNS resolution timing breakdown (separate from HTTP RTT)
 - [ ] TCP connection timing vs TLS handshake vs HTTP response
 - [ ] JSON output mode for scripting
-- [ ] Configuration file support (~/.config/hittyping.toml)
+- [ ] Configuration file support (~/.config/hp.toml)
 - [ ] Multiple targets in parallel
 
 ---
@@ -71,19 +77,19 @@ package main
 **Build commands:**
 ```bash
 # Default build (no HTTP/3, small binary)
-go build -o hittyping .
+go build -o hp .
 
 # With HTTP/3 support (larger binary)
-go build -tags http3 -o hittyping-http3 .
+go build -tags http3 -o hp .
 ```
 
 **justfile recipes:**
 ```just
 build:
-    go build -o hittyping .
+    go build -o hp .
 
 build-http3:
-    go build -tags http3 -o hittyping-http3 .
+    go build -tags http3 -o hp .
 ```
 
 This approach keeps the default binary small and dependency-free while allowing users who need HTTP/3 to opt-in.

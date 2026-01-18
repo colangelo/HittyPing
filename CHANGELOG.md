@@ -1,6 +1,26 @@
 # Changelog
 
-All notable changes to hittyping will be documented in this file.
+All notable changes to hp (formerly hittyping) will be documented in this file.
+
+## [0.4.0] - 2025-01-18
+
+### Breaking Changes
+
+- **Renamed binary**: `hittyping` → `hp`
+- **Renamed env vars**: `HITTYPING_*` → `HP_*`
+
+### Added
+
+- POSIX-style CLI flags via `spf13/pflag`:
+  - `-i/--interval`, `-t/--timeout`, `-n/--nolegend`
+  - `-m/--min`, `-g/--green`, `-y/--yellow`
+- `-k/--insecure` flag to skip TLS certificate verification
+- `--http` flag to use plain HTTP instead of HTTPS
+- Header now shows protocol: `HP host (HTTPS)` or `HP host (HTTP)`
+
+### Changed
+
+- All flags now support both short (`-i`) and long (`--interval`) forms
 
 ## [0.3.1] - 2025-01-18
 
