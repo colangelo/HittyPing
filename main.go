@@ -94,7 +94,7 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Printf("hp version %s\n", version)
+		fmt.Printf("hp (hittyping) version %s\n", version)
 		os.Exit(0)
 	}
 
