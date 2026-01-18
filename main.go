@@ -84,7 +84,7 @@ func main() {
 	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
 	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
 	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
-	noLegend := flag.BoolP("nolegend", "n", false, "hide the legend line")
+	noLegend := flag.BoolP("nolegend", "q", false, "hide the legend line")
 	minFlag := flag.Int64P("min", "m", 0, "min latency baseline in ms (env: HP_MIN)")
 	greenFlag := flag.Int64P("green", "g", 0, "green threshold in ms (env: HP_GREEN)")
 	yellowFlag := flag.Int64P("yellow", "y", 0, "yellow threshold in ms (env: HP_YELLOW)")
