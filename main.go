@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -29,6 +30,22 @@ const (
 // Unicode block characters for visualization
 var blocks = []string{"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"}
 
+// Configurable thresholds (ms)
+var (
+	greenThreshold  int64 = 150
+	yellowThreshold int64 = 400
+)
+
+// getEnvInt returns the env var value as int64, or the default if not set/invalid
+func getEnvInt(key string, def int64) int64 {
+	if v := os.Getenv(key); v != "" {
+		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return i
+		}
+	}
+	return def
+}
+
 type stats struct {
 	count    int
 	failures int
@@ -43,7 +60,19 @@ func main() {
 	interval := flag.Duration("i", time.Second, "interval between requests")
 	timeout := flag.Duration("t", 5*time.Second, "request timeout")
 	noLegend := flag.Bool("nolegend", false, "hide the legend line")
+	greenFlag := flag.Int64("green", 0, "green threshold in ms (env: HITTYPING_GREEN)")
+	yellowFlag := flag.Int64("yellow", 0, "yellow threshold in ms (env: HITTYPING_YELLOW)")
 	flag.Parse()
+
+	// Apply thresholds: env vars first, flags override
+	greenThreshold = getEnvInt("HITTYPING_GREEN", greenThreshold)
+	yellowThreshold = getEnvInt("HITTYPING_YELLOW", yellowThreshold)
+	if *greenFlag > 0 {
+		greenThreshold = *greenFlag
+	}
+	if *yellowFlag > 0 {
+		yellowThreshold = *yellowFlag
+	}
 
 	url := "https://1.1.1.1"
 	if flag.NArg() > 0 {
@@ -70,8 +99,8 @@ func main() {
 	// Print header
 	fmt.Printf("%sHITTYPING %s%s\n", gray, displayURL, reset)
 	if !*noLegend {
-		fmt.Printf("%sLegend: %s▁▂▃%s<150ms %s▄▅%s<400ms %s▆▇█%s>400ms %s×%sfail%s\n",
-			gray, green, reset, yellow, reset, red, reset, gray, reset, reset)
+		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s×%sfail%s\n",
+			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, gray, reset, reset)
 	}
 	fmt.Println() // Reserve stats line
 	fmt.Print(up) // Move back to bar line
@@ -143,11 +172,11 @@ func getBlock(rtt time.Duration) string {
 		idx = int((ms - minRTT) * 7 / (maxRTT - minRTT))
 	}
 
-	// Color based on latency
+	// Color based on latency thresholds
 	var color string
-	if ms < 150 {
+	if ms < greenThreshold {
 		color = green
-	} else if ms < 400 {
+	} else if ms < yellowThreshold {
 		color = yellow
 	} else {
 		color = red
