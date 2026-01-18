@@ -27,6 +27,13 @@ Planned features and improvements for hp.
 
 ## Planned
 
+### v0.6.0 - Protocol Shortcuts & Count
+
+- [ ] `-1` shorthand for `--http` (HTTP/1.1)
+- [ ] `-2/--http2` flag to force HTTP/2 (fail if not negotiated)
+- [ ] `-3` shorthand for `--http3` (QUIC)
+- [ ] `-c/--count` flag to limit number of requests (like `ping -c`)
+
 ## Ideas / Under Consideration
 
 - [ ] DNS resolution timing breakdown (separate from HTTP RTT)
