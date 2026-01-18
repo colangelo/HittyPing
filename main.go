@@ -33,6 +33,7 @@ var blocks = []string{"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"}
 
 // Configurable thresholds (ms)
 var (
+	minLatency      int64 = 0   // baseline for smallest block
 	greenThreshold  int64 = 150
 	yellowThreshold int64 = 400
 )
@@ -77,13 +78,18 @@ func main() {
 	interval := flag.Duration("i", time.Second, "interval between requests")
 	timeout := flag.Duration("t", 5*time.Second, "request timeout")
 	noLegend := flag.Bool("nolegend", false, "hide the legend line")
+	minFlag := flag.Int64("min", 0, "min latency baseline in ms (env: HITTYPING_MIN)")
 	greenFlag := flag.Int64("green", 0, "green threshold in ms (env: HITTYPING_GREEN)")
 	yellowFlag := flag.Int64("yellow", 0, "yellow threshold in ms (env: HITTYPING_YELLOW)")
 	flag.Parse()
 
 	// Apply thresholds: env vars first, flags override
+	minLatency = getEnvInt("HITTYPING_MIN", minLatency)
 	greenThreshold = getEnvInt("HITTYPING_GREEN", greenThreshold)
 	yellowThreshold = getEnvInt("HITTYPING_YELLOW", yellowThreshold)
+	if *minFlag > 0 {
+		minLatency = *minFlag
+	}
 	if *greenFlag > 0 {
 		greenThreshold = *greenFlag
 	}
@@ -182,18 +188,30 @@ func getBlock(rtt time.Duration) string {
 	var color string
 
 	if ms < greenThreshold {
-		// Green zone: blocks 0-2 (▁▂▃)
+		// Green zone: blocks 0-2 (▁▂▃), scaled from minLatency
 		color = green
-		idx = int(ms * 3 / greenThreshold)
-		if idx > 2 {
-			idx = 2
+		if ms <= minLatency {
+			idx = 0
+		} else {
+			progress := ms - minLatency
+			span := greenThreshold - minLatency
+			if span > 0 {
+				idx = int(progress * 3 / span)
+			}
+			if idx > 2 {
+				idx = 2
+			}
 		}
 	} else if ms < yellowThreshold {
 		// Yellow zone: blocks 3-4 (▄▅)
 		color = yellow
 		progress := ms - greenThreshold
 		span := yellowThreshold - greenThreshold
-		idx = 3 + int(progress*2/span)
+		if span > 0 {
+			idx = 3 + int(progress*2/span)
+		} else {
+			idx = 3
+		}
 		if idx > 4 {
 			idx = 4
 		}
@@ -203,7 +221,11 @@ func getBlock(rtt time.Duration) string {
 		// Scale red from yellowThreshold to 2x yellowThreshold
 		progress := ms - yellowThreshold
 		span := yellowThreshold // red zone spans another yellowThreshold worth
-		idx = 5 + int(progress*3/span)
+		if span > 0 {
+			idx = 5 + int(progress*3/span)
+		} else {
+			idx = 5
+		}
 		if idx > 7 {
 			idx = 7
 		}
