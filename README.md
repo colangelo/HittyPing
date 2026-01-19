@@ -3,7 +3,7 @@
 HittyPing is a prettyping-style HTTP(S) ping/latency monitor.
 Visualizes response times using Unicode block characters with color coding.
 
-![HittyPing 3D output](img/hittyping2.png)
+![HittyPing 3D output](img/hittyping.png)
 
 ## Features
 
