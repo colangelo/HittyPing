@@ -32,12 +32,22 @@ jobs:
         include:
           - goos: darwin
             goarch: amd64
+            ext: ''
           - goos: darwin
             goarch: arm64
+            ext: ''
           - goos: linux
             goarch: amd64
+            ext: ''
           - goos: linux
             goarch: arm64
+            ext: ''
+          - goos: windows
+            goarch: amd64
+            ext: '.exe'
+          - goos: windows
+            goarch: arm64
+            ext: '.exe'
     steps:
       - uses: actions/checkout@v4
 
@@ -52,7 +62,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          go build -ldflags="-s -w" -o hp-${{ matrix.goos }}-${{ matrix.goarch }} .
+          go build -ldflags="-s -w" -o hp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} .
 
       - name: Build HTTP/3 variant
         env:
@@ -60,7 +70,7 @@ jobs:
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
-          go build -ldflags="-s -w" -tags http3 -o hp-http3-${{ matrix.goos }}-${{ matrix.goarch }} .
+          go build -ldflags="-s -w" -tags http3 -o hp-http3-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} .
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
