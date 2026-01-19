@@ -2,6 +2,19 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.6.1] - 2025-01-19
+
+### Added
+
+- Show resolved IP address in header: `dns.google [8.8.8.8]`
+- IPv6 address support (wrapped in brackets for valid URLs)
+- Early DNS validation - fail immediately if hostname cannot be resolved
+
+### Changed
+
+- Header now shows full name and version: `HittyPing (v0.6.1) dns.google [8.8.8.8] (HTTPS)`
+- `-n` changed to `-q` for `--nolegend` (quiet mode)
+
 ## [0.6.0] - 2025-01-18
 
 ### Added

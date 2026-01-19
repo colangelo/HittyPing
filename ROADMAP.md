@@ -4,6 +4,14 @@ Planned features and improvements for hp.
 
 ## Completed
 
+### v0.6.1 - Display & Validation Improvements (DONE)
+
+- [x] Show resolved IP in header: `dns.google [8.8.8.8]`
+- [x] IPv6 address support
+- [x] Early DNS validation (fail if hostname unresolvable)
+- [x] Full name and version in header
+- [x] `-q` for quiet mode (was `-n`)
+
 ### v0.6.0 - Protocol Shortcuts & Count (DONE)
 
 - [x] `-1` shorthand for `--http` (HTTP/1.1)
