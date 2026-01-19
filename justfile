@@ -29,12 +29,18 @@ fmt:
 vet:
     go vet ./...
 
-# Local CI: fmt check, vet, test
+# Run vulnerability check
+vuln:
+    go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+# Local CI: fmt check, vet, vuln, test
 ci:
     @echo "Checking fmt..."
     @test -z "$(go fmt ./...)" || (echo "go fmt needed" && exit 1)
     @echo "Running vet..."
     go vet ./...
+    @echo "Running vulnerability check..."
+    go run golang.org/x/vuln/cmd/govulncheck@latest ./...
     @echo "Running tests..."
     go test -v ./...
     @echo "CI passed"
