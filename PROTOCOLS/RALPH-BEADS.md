@@ -79,6 +79,26 @@ bd search "keyword"
 - Run tests after each task
 - Fix failures before moving to next task
 
+## Context Management
+
+To avoid context rot during long implementation sessions:
+
+- **Use subagents for implementation**: Delegate each task to a `Task` subagent with `subagent_type="general-purpose"` or specialized agents like `feature-dev:code-architect`
+- **Keep main context clean**: The main chat should only track progress (`bd list`, `bd close`) and orchestrate subagents
+- **Subagent scope**: Each subagent handles one task: read spec, implement, test, return result
+- **Main chat commits**: After subagent completes, main chat does `bd close` and `git commit`
+
+Example iteration:
+
+```
+1. Run `bd list` to find next task
+2. Spawn subagent: "Implement hittyping-ji0: create main_test.go with imports"
+3. Subagent returns completion status
+4. Run `bd close hittyping-ji0`
+5. Commit changes
+6. Repeat
+```
+
 ## Completion Check
 
 After each iteration, run `bd list` to check remaining tasks.
