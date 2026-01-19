@@ -46,6 +46,26 @@ go build -o hp .
 
 ## Coding Agents coordination
 
+### Dev-only paths (do not merge to main)
+
+These paths exist only on `dev` branch for development tooling:
+
+```
+.beads/          # Beads task tracking database & config
+.claude/         # Claude Code custom commands (openspec)
+openspec/        # OpenSpec proposal system
+PROTOCOLS/       # Agent coordination protocols
+specs/           # Implementation plan documents
+CLAUDE.md        # Dev version has agent coordination sections
+```
+
+When merging dev → main, restore main's versions of these after merge:
+```bash
+git checkout HEAD~1 -- .beads .claude openspec PROTOCOLS specs CLAUDE.md
+```
+
+Or use PR workflow on GitHub - review diff and exclude dev tooling.
+
 ## Task Tracking with Beads
 
 After an OpenSpec proposal is approved and validated, convert tasks to Beads for implementation tracking:
