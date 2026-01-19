@@ -10,20 +10,18 @@ Visualizes response times using Unicode block characters with color coding.
 - Prettyping-style Unicode block visualization
 - Color-coded latency (green/yellow/red)
 - Live min/avg/max statistics
-- Protocol selection: HTTP/1.1 (`-1`), HTTP/2 (`-2`), HTTP/3 (`-3`)
-- Auto-downgrade on failures (`-d` secure, `-D` insecure)
+- Protocol selection: HTTP/1.1 (`-1`), HTTP/2 (`-2`), HTTP/3 (QUIC) (`-3`)
+- Auto-downgrade HTTP/3=>2=>1=>plain on failures (`-d` till secure/https, `-D` till insecure/http)
 - Request count limit (`-c`) like `ping -c`
-- Configurable thresholds via flags or env vars
-- HTTP/3 (QUIC) support included
-- Graceful Ctrl+C with final summary
+- Summary after graceful exit with Ctrl+C
+- Configurable color thresholds via flags or env vars
 
 ## Installation
 
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew tap colangelo/tap
-brew install hp
+brew install colangelo/tap/hp
 ```
 
 ### From source
