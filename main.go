@@ -9,9 +9,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
-	"unsafe"
 
 	flag "github.com/spf13/pflag"
 )
@@ -67,22 +65,6 @@ func getEnvInt(key string, def int64) int64 {
 		}
 	}
 	return def
-}
-
-// getTermWidth returns terminal width, defaulting to 80
-func getTermWidth() int {
-	type winsize struct {
-		Row, Col, Xpixel, Ypixel uint16
-	}
-	var ws winsize
-	_, _, _ = syscall.Syscall(syscall.SYS_IOCTL,
-		uintptr(syscall.Stdout),
-		uintptr(syscall.TIOCGWINSZ),
-		uintptr(unsafe.Pointer(&ws)))
-	if ws.Col == 0 {
-		return 80
-	}
-	return int(ws.Col)
 }
 
 type stats struct {
@@ -170,7 +152,7 @@ func main() {
 
 	// Handle Ctrl+C
 	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigCh, os.Interrupt)
 	go func() {
 		<-sigCh
 		printFinal(displayURL, s)
