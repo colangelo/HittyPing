@@ -263,6 +263,9 @@ func main() {
 					printHeader()
 					fmt.Println() // Reserve stats line
 					fmt.Print(up) // Move back to bar line
+
+					// Skip to next iteration - don't double-print or wait
+					continue
 				}
 			}
 		} else {
