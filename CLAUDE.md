@@ -4,11 +4,13 @@
 These instructions are for AI assistants working in this project.
 
 Always open `@/openspec/AGENTS.md` when the request:
+
 - Mentions planning or proposals (words like proposal, spec, change, plan)
 - Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
 - Sounds ambiguous and you need the authoritative spec before coding
 
 Use `@/openspec/AGENTS.md` to learn:
+
 - How to create and apply change proposals
 - Spec format and conventions
 - Project structure and guidelines
@@ -50,7 +52,7 @@ go build -o hp .
 
 These paths exist only on `dev` branch for development tooling:
 
-```
+```txt
 .beads/          # Beads task tracking database & config
 .claude/         # Claude Code custom commands (openspec)
 openspec/        # OpenSpec proposal system
@@ -60,6 +62,7 @@ CLAUDE.md        # Dev version has agent coordination sections
 ```
 
 When merging dev → main, restore main's versions of these after merge:
+
 ```bash
 git checkout HEAD~1 -- .beads .claude openspec PROTOCOLS specs CLAUDE.md
 ```
