@@ -91,6 +91,10 @@ go build -tags http3 -o hp .
 
 HTTP/3 works with servers that support it (Cloudflare, Google, etc).
 
+## Platform Support
+
+Developed and tested on macOS. Linux and Windows builds are provided but not actively tested.
+
 ## License
 
 MIT

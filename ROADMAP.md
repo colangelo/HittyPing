@@ -4,6 +4,19 @@ Planned features and improvements for hp.
 
 ## Completed
 
+### v0.7.3 - Release Improvements (DONE)
+
+- [x] MIT LICENSE file
+- [x] Platform support note in README
+- [x] Windows builds (amd64, arm64) in release workflow
+
+### v0.7.2 - CI & Testing (DONE)
+
+- [x] GitHub Actions CI workflow (test on push/PR)
+- [x] GitHub Actions release workflow (build on tag)
+- [x] Unit tests for core functions
+- [x] Linux arm64 builds in release matrix
+
 ### v0.7.1 - Downgrade Refinements (DONE)
 
 - [x] Downgrade only triggers at startup (before first successful ping)
