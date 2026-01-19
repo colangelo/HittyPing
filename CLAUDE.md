@@ -1,22 +1,3 @@
-<!-- OPENSPEC:START -->
-# OpenSpec Instructions
-
-These instructions are for AI assistants working in this project.
-
-Always open `@/openspec/AGENTS.md` when the request:
-- Mentions planning or proposals (words like proposal, spec, change, plan)
-- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
-- Sounds ambiguous and you need the authoritative spec before coding
-
-Use `@/openspec/AGENTS.md` to learn:
-- How to create and apply change proposals
-- Spec format and conventions
-- Project structure and guidelines
-
-Keep this managed block so 'openspec update' can refresh the instructions.
-
-<!-- OPENSPEC:END -->
-
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
@@ -33,6 +14,10 @@ just build-http3   # Build with HTTP/3 support (~10MB)
 just install       # Build and install to /usr/local/bin
 just install-http3 # Build with HTTP/3 and install
 just run           # Build and run with default target
+just test          # Run tests
+just fmt           # Format code
+just vet           # Run go vet
+just ci            # Local CI (fmt check, vet, test)
 just clean         # Remove binary
 ```
 
@@ -42,66 +27,6 @@ Or directly with Go:
 go build -o hp .                # Default build
 go build -tags http3 -o hp .    # With HTTP/3 support
 ```
-
-## Coding Agents coordination
-
-## Task Tracking with Beads
-
-After an OpenSpec proposal is approved and validated, convert tasks to Beads for implementation tracking:
-
-```bash
-# Convert openspec tasks to beads issues
-./PROTOCOLS/scripts/openspec-to-beads.py <change-id>
-
-# Sync completed status back before archiving
-./PROTOCOLS/scripts/beads-to-openspec.py
-```
-
-**IMPORTANT - Before `openspec archive`:**
-Always run `./PROTOCOLS/scripts/beads-to-openspec.py` first to sync completed task status back to `tasks.md`. The OpenSpec archiver does not know about Beads - skipping this step leaves tasks unchecked.
-
-For detailed workflow: see `PROTOCOLS/OPENSPEC-BEADS-WORKFLOW.md`
-
-### Beads / MCP-Agent-Mail protocol
-
-Read ./PROTOCOLS/BD-AGENT-MAIL.md
-
-### MCP-Agent-Mail: coordination for multi-agent workflows
-
-What it is
-
-- A mail-like layer that lets coding agents coordinate asynchronously via MCP tools and resources.
-- Provides identities, inbox/outbox, searchable threads, and advisory file reservations, with human-auditable artifacts in Git.
-
-Why it's useful
-
-- Prevents agents from stepping on each other with explicit file reservations (leases) for files/globs.
-- Keeps communication out of your token budget by storing messages in a per-project archive.
-- Offers quick reads (`resource://inbox/...`, `resource://thread/...`) and macros that bundle common flows.
-
-How to use effectively
-
-1) Same repository
-   - Register an identity: call `ensure_project`, then `register_agent` using this repo's absolute path as `project_key`.
-   - Reserve files before you edit: `file_reservation_paths(project_key, agent_name, ["src/**"], ttl_seconds=3600, exclusive=true)` to signal intent and avoid conflict.
-   - Communicate with threads: use `send_message(..., thread_id="FEAT-123")`; check inbox with `fetch_inbox` and acknowledge with `acknowledge_message`.
-   - Read fast: `resource://inbox/{Agent}?project=<abs-path>&limit=20` or `resource://thread/{id}?project=<abs-path>&include_bodies=true`.
-   - Tip: set `AGENT_NAME` in your environment so the pre-commit guard can block commits that conflict with others' active exclusive file reservations.
-
-2) Across different repos in one project (e.g., Next.js frontend + FastAPI backend)
-   - Option A (single project bus): register both sides under the same `project_key` (shared key/path). Keep reservation patterns specific (e.g., `frontend/**` vs `backend/**`).
-   - Option B (separate projects): each repo has its own `project_key`; use `macro_contact_handshake` or `request_contact`/`respond_contact` to link agents, then message directly. Keep a shared `thread_id` (e.g., ticket key) across repos for clean summaries/audits.
-
-Macros vs granular tools
-
-- Prefer macros when you want speed or are on a smaller model: `macro_start_session`, `macro_prepare_thread`, `macro_file_reservation_cycle`, `macro_contact_handshake`.
-- Use granular tools when you need control: `register_agent`, `file_reservation_paths`, `send_message`, `fetch_inbox`, `acknowledge_message`.
-
-Common pitfalls
-
-- "from_agent not registered": always `register_agent` in the correct `project_key` first.
-- "FILE_RESERVATION_CONFLICT": adjust patterns, wait for expiry, or use a non-exclusive reservation when appropriate.
-- Auth errors: if JWT+JWKS is enabled, include a bearer token with a `kid` that matches server JWKS; static bearer is used only when JWT is disabled.
 
 ## Usage
 
