@@ -4,6 +4,11 @@ Planned features and improvements for hp.
 
 ## Completed
 
+### v0.7.4 - Windows Build Fix (DONE)
+
+- [x] Platform-specific terminal width detection (terminal_unix.go, terminal_windows.go)
+- [x] Portable signal handling with os.Interrupt
+
 ### v0.7.3 - Release Improvements (DONE)
 
 - [x] MIT LICENSE file

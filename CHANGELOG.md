@@ -2,6 +2,13 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.7.4] - 2026-01-19
+
+### Fixed
+
+- Windows build: split terminal width detection into platform-specific files
+- Use portable `os.Interrupt` for signal handling
+
 ## [0.7.3] - 2026-01-19
 
 ### Added
