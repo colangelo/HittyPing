@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -132,6 +133,16 @@ func main() {
 	// Display URL without scheme
 	displayURL := strings.TrimPrefix(strings.TrimPrefix(url, "https://"), "http://")
 
+	// Resolve hostname to IP for display
+	resolvedIP := ""
+	// Check if displayURL is already an IP address
+	if ip := net.ParseIP(displayURL); ip == nil {
+		// It's a hostname, resolve it
+		if ips, err := net.LookupHost(displayURL); err == nil && len(ips) > 0 {
+			resolvedIP = ips[0]
+		}
+	}
+
 	s := &stats{min: time.Hour}
 
 	// Handle Ctrl+C
@@ -176,7 +187,11 @@ func main() {
 	}
 
 	// Print header
-	fmt.Printf("%sHittyPing (v%s) %s (%s)%s\n", gray, version, displayURL, protocol, reset)
+	if resolvedIP != "" {
+		fmt.Printf("%sHittyPing (v%s) %s [%s] (%s)%s\n", gray, version, displayURL, resolvedIP, protocol, reset)
+	} else {
+		fmt.Printf("%sHittyPing (v%s) %s (%s)%s\n", gray, version, displayURL, protocol, reset)
+	}
 	if !*noLegend {
 		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
 			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
