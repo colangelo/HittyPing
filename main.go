@@ -259,7 +259,7 @@ func main() {
 
 					// Print downgrade message and update header
 					printDisplay(s)
-					fmt.Printf("\n%s↓ Downgrading to %s after 3 failures%s\n", yellow, protoNames[currentProto], reset)
+					fmt.Printf("\n%s↓ Downgrading to %s (3 initial failures)%s\n", yellow, protoNames[currentProto], reset)
 					printHeader()
 					fmt.Println() // Reserve stats line
 					fmt.Print(up) // Move back to bar line
