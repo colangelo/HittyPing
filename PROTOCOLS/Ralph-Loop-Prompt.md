@@ -49,8 +49,10 @@ Estimated iterations: 20-40 (depending on task grouping)
 
 ## Spec example for Beads
 
-/ralph-loop:ralph-loop FEATURE=add-frontend-testing VERSION=v0.9.2 "
+```txt
+/ralph-loop:ralph-loop FEATURE=add-tests-and-ci VERSION=v0.7.2 "
 Follow RALPH-BEADS.md protocol.
 Use 'bd list' to find next task, implement it, 'bd close <id>' when done.
 Output <promise>ALL TASKS COMPLETE</promise> when 'bd list' returns no open issues.
 " --completion-promise "ALL TASKS COMPLETE" --max-iterations 20
+```
