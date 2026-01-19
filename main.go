@@ -141,14 +141,19 @@ func main() {
 	// Display URL without scheme
 	displayURL := strings.TrimPrefix(strings.TrimPrefix(url, "https://"), "http://")
 
-	// Resolve hostname to IP for display
+	// Resolve hostname to IP for display (and validate it exists)
 	resolvedIP := ""
 	// Strip brackets from IPv6 for parsing and display
 	hostForLookup := strings.TrimPrefix(strings.TrimSuffix(displayURL, "]"), "[")
 	// Check if it's already an IP address
 	if ip := net.ParseIP(hostForLookup); ip == nil {
 		// It's a hostname, resolve it
-		if ips, err := net.LookupHost(hostForLookup); err == nil && len(ips) > 0 {
+		ips, err := net.LookupHost(hostForLookup)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: cannot resolve %s: %v\n", hostForLookup, err)
+			os.Exit(1)
+		}
+		if len(ips) > 0 {
 			resolvedIP = ips[0]
 		}
 	}
