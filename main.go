@@ -175,12 +175,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Check HTTP/3 availability
-	if *useHTTP3 && !http3Available {
-		fmt.Fprintln(os.Stderr, "HTTP/3 not compiled in. Rebuild with: go build -tags http3")
-		os.Exit(1)
-	}
-
 	// Determine initial protocol level
 	currentProto := protoHTTPS
 	if *useHTTP1 {

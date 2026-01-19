@@ -9,10 +9,8 @@ hp (formerly hittyping) is a prettyping-style HTTP(S) latency monitor written in
 ## Build Commands
 
 ```bash
-just build         # Build binary (~7.6MB)
-just build-http3   # Build with HTTP/3 support (~10MB)
+just build         # Build binary (~10MB, includes HTTP/3)
 just install       # Build and install to /usr/local/bin
-just install-http3 # Build with HTTP/3 and install
 just run           # Build and run with default target
 just test          # Run tests
 just fmt           # Format code
@@ -24,8 +22,7 @@ just clean         # Remove binary
 Or directly with Go:
 
 ```bash
-go build -o hp .                # Default build
-go build -tags http3 -o hp .    # With HTTP/3 support
+go build -o hp .
 ```
 
 ## Usage
@@ -40,7 +37,7 @@ hp -q dns.nextdns.io                  # Quiet mode (hide legend)
 hp -k https://self-signed.example     # Skip TLS verification (or --insecure)
 hp -1 example.com                     # Use plain HTTP/1.1 (or --http)
 hp -2 cloudflare.com                  # Force HTTP/2 (or --http2)
-hp -3 cloudflare.com                  # Use HTTP/3 (or --http3) - requires http3 build
+hp -3 cloudflare.com                  # Use HTTP/3 (or --http3)
 hp -3 -d example.com                  # HTTP/3 with auto-downgrade on failures
 hp -3 -D example.com                  # Auto-downgrade including plain HTTP
 hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
@@ -60,7 +57,7 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 | `-k` | `--insecure` | | false | Skip TLS verification |
 | `-1` | `--http` | | false | Use plain HTTP/1.1 |
 | `-2` | `--http2` | | false | Force HTTP/2 (fail if not negotiated) |
-| `-3` | `--http3` | | false | Use HTTP/3 (requires http3 build tag) |
+| `-3` | `--http3` | | false | Use HTTP/3 (QUIC) |
 | `-d` | `--downgrade` | | false | Auto-downgrade on 3 failures (secure only) |
 | `-D` | `--downgrade-insecure` | | false | Auto-downgrade including plain HTTP |
 | `-v` | `--version` | | | Show version and exit |

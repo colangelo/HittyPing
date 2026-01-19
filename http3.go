@@ -1,5 +1,3 @@
-//go:build http3
-
 package main
 
 import (
@@ -9,8 +7,6 @@ import (
 
 	"github.com/quic-go/quic-go/http3"
 )
-
-var http3Available = true
 
 func newHTTP3Client(timeout time.Duration, insecure bool) *http.Client {
 	return &http.Client{

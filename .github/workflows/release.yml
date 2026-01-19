@@ -56,21 +56,13 @@ jobs:
         with:
           go-version: 'stable'
 
-      - name: Build default variant
+      - name: Build
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
         run: |
           go build -ldflags="-s -w" -o hp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} .
-
-      - name: Build HTTP/3 variant
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: 0
-        run: |
-          go build -ldflags="-s -w" -tags http3 -o hp-http3-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} .
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

@@ -14,21 +14,32 @@ Visualizes response times using Unicode block characters with color coding.
 - Auto-downgrade on failures (`-d` secure, `-D` insecure)
 - Request count limit (`-c`) like `ping -c`
 - Configurable thresholds via flags or env vars
-- Optional HTTP/3 (QUIC) support via build tags
+- HTTP/3 (QUIC) support included
 - Graceful Ctrl+C with final summary
 
 ## Installation
 
+### Homebrew (macOS/Linux)
+
 ```bash
-# Build from source
-go build -o hp .
-
-# Or with just
-just install
-
-# With HTTP/3 support (~10MB vs ~7.6MB default)
-just install-http3
+brew tap colangelo/tap
+brew install hp
 ```
+
+### From source
+
+```bash
+go install github.com/colangelo/HittyPing@latest
+
+# Or clone and build
+git clone https://github.com/colangelo/HittyPing.git
+cd HittyPing
+go build -o hp .
+```
+
+### From releases
+
+Download the binary for your platform from [Releases](https://github.com/colangelo/HittyPing/releases).
 
 ## Usage
 
@@ -42,7 +53,7 @@ hp -q cloudflare.com            # Quiet mode (hide legend)
 hp -k https://self-signed.test  # Skip TLS verification
 hp -1 httpbin.org               # Force HTTP/1.1 (plain HTTP)
 hp -2 cloudflare.com            # Force HTTP/2 (fail if not negotiated)
-hp -3 cloudflare.com            # HTTP/3 (QUIC) - requires http3 build
+hp -3 cloudflare.com            # HTTP/3 (QUIC)
 hp -3 -d example.com            # HTTP/3 with auto-downgrade on failures
 hp -3 -D example.com            # Auto-downgrade including plain HTTP
 hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
@@ -62,7 +73,7 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 | `-k` | `--insecure` | | false | Skip TLS certificate verification |
 | `-1` | `--http` | | false | Use plain HTTP/1.1 |
 | `-2` | `--http2` | | false | Force HTTP/2 (fail if not negotiated) |
-| `-3` | `--http3` | | false | Use HTTP/3 (requires http3 build) |
+| `-3` | `--http3` | | false | Use HTTP/3 (QUIC) |
 | `-d` | `--downgrade` | | false | Auto-downgrade on 3 failures (secure only) |
 | `-D` | `--downgrade-insecure` | | false | Auto-downgrade including plain HTTP |
 | `-v` | `--version` | | | Show version |
@@ -76,20 +87,6 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 - **Red !**: Request failed
 
 Block height scales within each color zone based on latency.
-
-## HTTP/3 Support
-
-HTTP/3 (QUIC) is optional to keep the default binary small:
-
-```bash
-# Default build (~7.6MB) - no HTTP/3
-go build -o hp .
-
-# HTTP/3 build (~10MB)
-go build -tags http3 -o hp .
-```
-
-HTTP/3 works with servers that support it (Cloudflare, Google, etc).
 
 ## Platform Support
 
