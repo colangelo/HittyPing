@@ -24,6 +24,13 @@ Visualizes response times using Unicode block characters with color coding.
 brew install colangelo/tap/hp
 ```
 
+### Scoop (Windows)
+
+```powershell
+scoop bucket add colangelo https://github.com/colangelo/scoop-bucket
+scoop install hp
+```
+
 ### From source
 
 ```bash
