@@ -35,12 +35,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `.claude/` | Claude Code custom commands (openspec) |
 | `openspec/` | OpenSpec proposal system |
 | `PROTOCOLS/` | Agent coordination protocols |
+| `AGENTS.md` | Codex/agent instructions file |
 | `CLAUDE.md` | This dev version (main has a simpler version) |
 
 **After merging dev → main, ALWAYS run:**
 
 ```bash
-git rm -rf .beads .claude openspec PROTOCOLS
+git rm -rf .beads .claude openspec PROTOCOLS AGENTS.md
 git checkout origin/main -- CLAUDE.md
 git commit -m "chore: remove dev-only paths from main"
 ```
