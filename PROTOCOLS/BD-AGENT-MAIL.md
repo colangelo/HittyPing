@@ -45,12 +45,22 @@ This document describes how to use **bd** (beads issue tracker), **mcp_agent_mai
 2. **bv** (beads viewer) installed: `brew install steveyegge/tap/bv`
 3. **mcp_agent_mail** MCP server configured in Claude Code
 
+### Project Key Convention
+
+All agents must use the same canonical absolute path as `project_key` to ensure they register under the same project:
+
+```
+/Users/ac/_projects/Infra/hittyping
+```
+
+> **Important:** Avoid symlinked or alternative paths (e.g., `/Users/ac/_sync/...`). Different paths create separate projects in agent-mail, breaking coordination.
+
 ### Initialize Project
 
 ```bash
 # Initialize beads in your project (one-time)
 cd /path/to/project
-bd init --prefix moz
+bd init --prefix hp
 
 # Verify setup
 bd list
@@ -468,6 +478,34 @@ The dependency system prevents conflicts:
 2. **Clear dependencies** - Use `blocks` type for hard dependencies
 3. **Specific file scope** - Tasks should touch minimal files
 4. **Include context** - Use descriptions with file paths and requirements
+
+---
+
+## Beads + MCP-Agent-Mail Integration
+
+Beads is the **source of truth** for task status and assignments. MCP-Agent-Mail handles agent coordination and file conflict prevention.
+
+### Linking Conventions
+
+Use the Beads issue ID to connect the two systems:
+
+| Context | Convention | Example |
+|---------|------------|---------|
+| Message `thread_id` | Use Beads issue ID | `thread_id="hp-r03"` |
+| Message subject | Prefix with issue ID | `"[hp-r03] Ready for review"` |
+| File reservation `reason` | Include issue ID | `reason="hp-r03: implementing feature"` |
+
+### Cleanup Behavior
+
+| Situation | What happens |
+|-----------|--------------|
+| Agent crashes with file reservations | Auto-expires via TTL (no action needed) |
+| Agent crashes with in_progress task | Manual cleanup: `bd update <id> --status open --assignee ""` |
+| Stale reservation blocking work | Use `force_release_file_reservation` or wait for TTL |
+
+### Upstream Documentation
+
+For comprehensive mcp_agent_mail details, see: https://github.com/Dicklesworthstone/mcp_agent_mail
 
 ---
 
