@@ -52,7 +52,7 @@ Or reject these paths during PR review on GitHub.
 
 ## Repository Purpose
 
-hp (formerly hittyping) is a prettyping-style HTTP(S) latency monitor written in Go. It visualizes response times using Unicode block characters with color coding.
+hp (hittyping) is a prettyping-style HTTP(S) latency monitor written in Go. It visualizes response times using Unicode block characters with color coding.
 
 ## Build Commands
 
