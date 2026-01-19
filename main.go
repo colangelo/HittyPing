@@ -16,7 +16,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const version = "0.7.0"
+const version = "0.7.1"
 
 const (
 	// ANSI colors
@@ -247,33 +247,47 @@ func main() {
 			consecutiveFailures++
 			s.blocks = append(s.blocks, red+bold+"!"+reset)
 
-			// Check for downgrade
-			if canDowngrade && consecutiveFailures >= 3 && currentProto > minProto {
-				// Downgrade to next lower protocol
-				switch currentProto {
-				case protoHTTP3:
-					currentProto = protoHTTP2
-				case protoHTTP2:
-					currentProto = protoHTTPS
-				case protoHTTPS:
-					currentProto = protoHTTP1
+			// Check for downgrade (only at startup, before first successful ping)
+			if canDowngrade && consecutiveFailures >= 3 && currentProto > minProto && s.count == 0 {
+				// Find a working lower protocol by testing each one
+				candidateProto := currentProto
+				foundWorking := false
+				for candidateProto > minProto {
+					// Try next lower protocol
+					switch candidateProto {
+					case protoHTTP3:
+						candidateProto = protoHTTP2
+					case protoHTTP2:
+						candidateProto = protoHTTPS
+					case protoHTTPS:
+						candidateProto = protoHTTP1
+					}
+
+					// Test this protocol silently
+					testURL := getURLForProto(host, candidateProto)
+					testClient := createClient(candidateProto, *timeout, *insecure)
+					_, testErr := measureRTT(testClient, testURL, candidateProto)
+					if testErr == nil {
+						// Found working protocol
+						currentProto = candidateProto
+						url = testURL
+						client = testClient
+						foundWorking = true
+						break
+					}
+					// Otherwise continue to even lower protocol
 				}
 
-				// Recreate client and URL for new protocol
-				url = getURLForProto(host, currentProto)
-				client = createClient(currentProto, *timeout, *insecure)
-				consecutiveFailures = 0
+				if foundWorking {
+					consecutiveFailures = 0
 
-				// Print downgrade message and update header
-				printDisplay(s)
-				fmt.Printf("\n%s↓ Downgrading to %s after 3 failures%s\n", yellow, protoNames[currentProto], reset)
-				printHeader()
-				if !*noLegend {
-					fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
-						gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
+					// Print downgrade message and update header
+					printDisplay(s)
+					fmt.Printf("\n%s↓ Downgrading to %s after 3 failures%s\n", yellow, protoNames[currentProto], reset)
+					printHeader()
+					fmt.Println() // Reserve stats line
+					fmt.Print(up) // Move back to bar line
 				}
-				fmt.Println() // Reserve stats line
-				fmt.Print(up) // Move back to bar line
 			}
 		} else {
 			s.count++

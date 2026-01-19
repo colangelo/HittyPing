@@ -2,6 +2,14 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.7.1] - 2026-01-19
+
+### Changed
+
+- Downgrade now only triggers at startup (before first successful ping)
+- Pre-tests lower protocols before committing to downgrade (finds first working protocol)
+- Legend no longer reprints after downgrade (cleaner output)
+
 ## [0.7.0] - 2026-01-19
 
 ### Added

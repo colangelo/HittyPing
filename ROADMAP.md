@@ -4,6 +4,12 @@ Planned features and improvements for hp.
 
 ## Completed
 
+### v0.7.1 - Downgrade Refinements (DONE)
+
+- [x] Downgrade only triggers at startup (before first successful ping)
+- [x] Pre-tests lower protocols before committing (finds first working protocol)
+- [x] Legend no longer reprints after downgrade (cleaner output)
+
 ### v0.7.0 - Protocol Downgrade (DONE)
 
 - [x] `-d/--downgrade` flag for auto-downgrade on 3 consecutive failures (secure only)

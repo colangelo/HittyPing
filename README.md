@@ -1,14 +1,9 @@
 # hp - HittyPing
 
-HittyPing is a prettyping-style HTTP(S) latency monitor. Visualizes response times using Unicode block characters with color coding.
+HittyPing is a prettyping-style HTTP(S) ping/latency monitor.
+Visualizes response times using Unicode block characters with color coding.
 
-```
-❯ hp --http3 dns.google                                                                                                        01/18 23:59:55
-HP dns.google (HTTP/3)
-Legend: ▁▂▃<150ms ▄▅<400ms ▆▇█>=400ms !fail
-▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
-0/20 ( 0%) lost; 24/35/222ms; last: 25ms
-```
+![HittyPing 3D output](img/hittyping.png)
 
 ## Features
 
