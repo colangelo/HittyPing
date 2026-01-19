@@ -176,3 +176,71 @@ FORMULA
           git add Formula/hp.rb
           git diff --staged --quiet || git commit -m "Update hp to v${VERSION}"
           git push
+
+  update-scoop:
+    name: Update Scoop Manifest
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calculate checksums
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          BASE_URL="https://github.com/colangelo/HittyPing/releases/download/${GITHUB_REF_NAME}"
+
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+          # Download and hash Windows binaries
+          curl -sL "${BASE_URL}/hp-windows-amd64.exe" | sha256sum | cut -d' ' -f1 > windows-amd64.sha
+          curl -sL "${BASE_URL}/hp-windows-arm64.exe" | sha256sum | cut -d' ' -f1 > windows-arm64.sha
+
+          echo "Checksums:"
+          cat *.sha
+
+      - name: Update scoop-bucket
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          git clone https://x-access-token:${GH_TOKEN}@github.com/colangelo/scoop-bucket.git
+          cd scoop-bucket
+
+          WINDOWS_AMD64=$(cat ../windows-amd64.sha)
+          WINDOWS_ARM64=$(cat ../windows-arm64.sha)
+
+          cat > bucket/hp.json << MANIFEST
+{
+    "version": "${VERSION}",
+    "description": "Prettyping-style HTTP(S) latency monitor",
+    "homepage": "https://github.com/colangelo/HittyPing",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/colangelo/HittyPing/releases/download/v${VERSION}/hp-windows-amd64.exe#/hp.exe",
+            "hash": "${WINDOWS_AMD64}"
+        },
+        "arm64": {
+            "url": "https://github.com/colangelo/HittyPing/releases/download/v${VERSION}/hp-windows-arm64.exe#/hp.exe",
+            "hash": "${WINDOWS_ARM64}"
+        }
+    },
+    "bin": "hp.exe",
+    "checkver": {
+        "github": "https://github.com/colangelo/HittyPing"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/colangelo/HittyPing/releases/download/v\$version/hp-windows-amd64.exe#/hp.exe"
+            },
+            "arm64": {
+                "url": "https://github.com/colangelo/HittyPing/releases/download/v\$version/hp-windows-arm64.exe#/hp.exe"
+            }
+        }
+    }
+}
+MANIFEST
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bucket/hp.json
+          git diff --staged --quiet || git commit -m "Update hp to v${VERSION}"
+          git push
