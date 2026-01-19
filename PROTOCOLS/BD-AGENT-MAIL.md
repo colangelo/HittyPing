@@ -77,6 +77,65 @@ bd export -o .beads/issues.jsonl
 
 > **Note:** bd has auto-flush with 5-second debounce, but manual export ensures immediate sync.
 
+### Pre-commit Guard (Optional)
+
+The mcp-agent-mail pre-commit guard blocks commits that touch files reserved by other agents. This enforces file reservations at commit time, not just at reservation time.
+
+**How it works:**
+
+1. When you commit, the guard checks staged files against active exclusive reservations
+2. If another agent holds an exclusive reservation on any staged file, the commit is blocked
+3. Your own reservations are ignored (you can commit files you've reserved)
+
+**Installation:**
+
+Use the MCP tool from within Claude Code:
+
+```
+install_precommit_guard(
+  project_key="/Users/ac/_projects/Infra/hittyping",
+  code_repo_path="/Users/ac/_projects/Infra/hittyping"
+)
+```
+
+This installs a Python script at `.git/hooks/hooks.d/pre-commit/50-agent-mail.py` and creates a chain-runner that executes both the Beads hook and the agent-mail guard.
+
+**Configuration:**
+
+Set `AGENT_NAME` in your environment so the guard knows who you are:
+
+```bash
+export AGENT_NAME="BlueLake"  # Your registered agent name
+```
+
+Without `AGENT_NAME`, the guard cannot identify you and will block all commits.
+
+**When a commit is blocked:**
+
+```
+Exclusive file_reservation conflicts detected:
+  src/api/users.go -> pattern: src/api/*.go (holder: GreenCastle, expires in 45 min)
+```
+
+**Resolution options:**
+
+1. Wait for the reservation to expire
+2. Message the holder to coordinate
+3. Work on different files
+4. Bypass with `AGENT_MAIL_BYPASS=1 git commit ...` (use with caution)
+
+**Advisory mode:**
+
+To warn instead of block: `export AGENT_MAIL_GUARD_MODE=warn`
+
+**Uninstallation:**
+
+```
+uninstall_precommit_guard(
+  code_repo_path="/Users/ac/_projects/Infra/hittyping"
+)
+```
+
 ---
 
 ## Workflow Steps
@@ -548,6 +607,28 @@ fetch_inbox(
   include_bodies=true,
   limit=50
 )
+```
+
+### Pre-commit guard blocking all commits
+
+If commits fail with "AGENT_NAME not set":
+
+```bash
+# Set your agent name in the environment
+export AGENT_NAME="YourAgentName"
+```
+
+If commits fail with unexpected conflicts:
+
+```bash
+# Check active reservations
+ls -la .agent-mail/file_reservations/
+
+# Temporarily bypass (use with caution)
+AGENT_MAIL_BYPASS=1 git commit -m "message"
+
+# Or switch to advisory mode
+export AGENT_MAIL_GUARD_MODE=warn
 ```
 
 ---
