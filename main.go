@@ -16,7 +16,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const version = "0.6.1"
+const version = "0.7.0"
 
 const (
 	// ANSI colors
@@ -36,6 +36,21 @@ const (
 
 // Unicode block characters for visualization
 var blocks = []string{"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"}
+
+// Protocol levels for downgrade feature
+const (
+	protoHTTP1  = 0 // Plain HTTP/1.1 (insecure)
+	protoHTTPS  = 1 // HTTPS (auto-negotiate)
+	protoHTTP2  = 2 // HTTP/2 (forced)
+	protoHTTP3  = 3 // HTTP/3 (QUIC)
+)
+
+var protoNames = map[int]string{
+	protoHTTP1: "HTTP/1.1",
+	protoHTTPS: "HTTPS",
+	protoHTTP2: "HTTP/2",
+	protoHTTP3: "HTTP/3",
+}
 
 // Configurable thresholds (ms)
 var (
@@ -93,6 +108,8 @@ func main() {
 	useHTTP1 := flag.BoolP("http", "1", false, "use plain HTTP/1.1")
 	useHTTP2 := flag.BoolP("http2", "2", false, "force HTTP/2 (fail if not negotiated)")
 	useHTTP3 := flag.BoolP("http3", "3", false, "use HTTP/3 (QUIC) - requires build with -tags http3")
+	downgrade := flag.BoolP("downgrade", "d", false, "auto-downgrade protocol on failures (secure only)")
+	downgradeInsecure := flag.BoolP("downgrade-insecure", "D", false, "auto-downgrade including plain HTTP")
 	showVersion := flag.BoolP("version", "v", false, "show version and exit")
 	flag.Parse()
 
@@ -115,31 +132,22 @@ func main() {
 		yellowThreshold = *yellowFlag
 	}
 
-	url := "https://1.1.1.1"
+	// Extract host (without scheme) for building URLs dynamically
+	host := "1.1.1.1"
 	if flag.NArg() > 0 {
-		url = flag.Arg(0)
+		host = flag.Arg(0)
 		// Strip any existing scheme
-		url = strings.TrimPrefix(url, "https://")
-		url = strings.TrimPrefix(url, "http://")
+		host = strings.TrimPrefix(host, "https://")
+		host = strings.TrimPrefix(host, "http://")
 
 		// Check if it's an IPv6 address that needs brackets
-		if ip := net.ParseIP(url); ip != nil && ip.To4() == nil {
+		if ip := net.ParseIP(host); ip != nil && ip.To4() == nil {
 			// It's an IPv6 address, wrap in brackets
-			url = "[" + url + "]"
+			host = "[" + host + "]"
 		}
-
-		// Add appropriate scheme
-		if *useHTTP1 {
-			url = "http://" + url
-		} else {
-			url = "https://" + url
-		}
-	} else if *useHTTP1 {
-		url = "http://1.1.1.1"
 	}
 
-	// Display URL without scheme
-	displayURL := strings.TrimPrefix(strings.TrimPrefix(url, "https://"), "http://")
+	displayURL := host
 
 	// Resolve hostname to IP for display (and validate it exists)
 	resolvedIP := ""
@@ -191,22 +199,34 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Determine protocol for display
-	protocol := "HTTPS"
+	// Determine initial protocol level
+	currentProto := protoHTTPS
 	if *useHTTP1 {
-		protocol = "HTTP/1.1"
+		currentProto = protoHTTP1
 	} else if *useHTTP2 {
-		protocol = "HTTP/2"
+		currentProto = protoHTTP2
 	} else if *useHTTP3 {
-		protocol = "HTTP/3"
+		currentProto = protoHTTP3
 	}
 
-	// Print header
-	if resolvedIP != "" {
-		fmt.Printf("%sHittyPing (v%s) %s [%s] (%s)%s\n", gray, version, displayURL, resolvedIP, protocol, reset)
-	} else {
-		fmt.Printf("%sHittyPing (v%s) %s (%s)%s\n", gray, version, displayURL, protocol, reset)
+	// Determine minimum protocol level for downgrade
+	minProto := protoHTTPS // secure only by default
+	if *downgradeInsecure {
+		minProto = protoHTTP1
 	}
+	canDowngrade := *downgrade || *downgradeInsecure
+
+	// Print header
+	printHeader := func() {
+		// Move to beginning of line and clear
+		fmt.Print(col0 + clearLn)
+		if resolvedIP != "" {
+			fmt.Printf("%sHittyPing (v%s) %s [%s] (%s)%s\n", gray, version, displayURL, resolvedIP, protoNames[currentProto], reset)
+		} else {
+			fmt.Printf("%sHittyPing (v%s) %s (%s)%s\n", gray, version, displayURL, protoNames[currentProto], reset)
+		}
+	}
+	printHeader()
 	if !*noLegend {
 		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
 			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
@@ -214,37 +234,50 @@ func main() {
 	fmt.Println() // Reserve stats line
 	fmt.Print(up) // Move back to bar line
 
-	// Create HTTP client based on protocol choice
-	var client *http.Client
-	if *useHTTP3 {
-		client = newHTTP3Client(*timeout, *insecure)
-	} else {
-		transport := &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: *insecure,
-			},
-			DisableKeepAlives: true,
-		}
-		if *useHTTP2 {
-			transport.ForceAttemptHTTP2 = true
-		}
-		client = &http.Client{
-			Timeout:   *timeout,
-			Transport: transport,
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				return http.ErrUseLastResponse
-			},
-		}
-	}
+	// Create HTTP client
+	url := getURLForProto(host, currentProto)
+	client := createClient(currentProto, *timeout, *insecure)
 
+	consecutiveFailures := 0
 	requestNum := 0
 	for {
-		rtt, err := measureRTT(client, url, *useHTTP2)
+		rtt, err := measureRTT(client, url, currentProto)
 		if err != nil {
 			s.failures++
+			consecutiveFailures++
 			s.blocks = append(s.blocks, red+bold+"!"+reset)
+
+			// Check for downgrade
+			if canDowngrade && consecutiveFailures >= 3 && currentProto > minProto {
+				// Downgrade to next lower protocol
+				switch currentProto {
+				case protoHTTP3:
+					currentProto = protoHTTP2
+				case protoHTTP2:
+					currentProto = protoHTTPS
+				case protoHTTPS:
+					currentProto = protoHTTP1
+				}
+
+				// Recreate client and URL for new protocol
+				url = getURLForProto(host, currentProto)
+				client = createClient(currentProto, *timeout, *insecure)
+				consecutiveFailures = 0
+
+				// Print downgrade message and update header
+				printDisplay(s)
+				fmt.Printf("\n%s↓ Downgrading to %s after 3 failures%s\n", yellow, protoNames[currentProto], reset)
+				printHeader()
+				if !*noLegend {
+					fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
+						gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
+				}
+				fmt.Println() // Reserve stats line
+				fmt.Print(up) // Move back to bar line
+			}
 		} else {
 			s.count++
+			consecutiveFailures = 0 // Reset on success
 			s.total += rtt
 			s.last = rtt
 			if rtt < s.min {
@@ -265,7 +298,7 @@ func main() {
 	}
 }
 
-func measureRTT(client *http.Client, url string, requireHTTP2 bool) (time.Duration, error) {
+func measureRTT(client *http.Client, url string, protoLevel int) (time.Duration, error) {
 	req, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
 		return 0, err
@@ -281,11 +314,41 @@ func measureRTT(client *http.Client, url string, requireHTTP2 bool) (time.Durati
 	resp.Body.Close()
 
 	// Check HTTP/2 requirement
-	if requireHTTP2 && resp.Proto != "HTTP/2.0" {
+	if protoLevel == protoHTTP2 && resp.Proto != "HTTP/2.0" {
 		return 0, fmt.Errorf("HTTP/2 not negotiated (got %s)", resp.Proto)
 	}
 
 	return elapsed, nil
+}
+
+func createClient(protoLevel int, timeout time.Duration, insecure bool) *http.Client {
+	if protoLevel == protoHTTP3 {
+		return newHTTP3Client(timeout, insecure)
+	}
+
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: insecure,
+		},
+		DisableKeepAlives: true,
+	}
+	if protoLevel == protoHTTP2 {
+		transport.ForceAttemptHTTP2 = true
+	}
+	return &http.Client{
+		Timeout:   timeout,
+		Transport: transport,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+}
+
+func getURLForProto(host string, protoLevel int) string {
+	if protoLevel == protoHTTP1 {
+		return "http://" + host
+	}
+	return "https://" + host
 }
 
 func getBlock(rtt time.Duration) string {

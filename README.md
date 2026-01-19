@@ -16,6 +16,7 @@ Legend: ▁▂▃<150ms ▄▅<400ms ▆▇█>=400ms !fail
 - Color-coded latency (green/yellow/red)
 - Live min/avg/max statistics
 - Protocol selection: HTTP/1.1 (`-1`), HTTP/2 (`-2`), HTTP/3 (`-3`)
+- Auto-downgrade on failures (`-d` secure, `-D` insecure)
 - Request count limit (`-c`) like `ping -c`
 - Configurable thresholds via flags or env vars
 - Optional HTTP/3 (QUIC) support via build tags
@@ -47,6 +48,8 @@ hp -k https://self-signed.test  # Skip TLS verification
 hp -1 httpbin.org               # Force HTTP/1.1 (plain HTTP)
 hp -2 cloudflare.com            # Force HTTP/2 (fail if not negotiated)
 hp -3 cloudflare.com            # HTTP/3 (QUIC) - requires http3 build
+hp -3 -d example.com            # HTTP/3 with auto-downgrade on failures
+hp -3 -D example.com            # Auto-downgrade including plain HTTP
 hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 ```
 
@@ -65,6 +68,8 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 | `-1` | `--http` | | false | Use plain HTTP/1.1 |
 | `-2` | `--http2` | | false | Force HTTP/2 (fail if not negotiated) |
 | `-3` | `--http3` | | false | Use HTTP/3 (requires http3 build) |
+| `-d` | `--downgrade` | | false | Auto-downgrade on 3 failures (secure only) |
+| `-D` | `--downgrade-insecure` | | false | Auto-downgrade including plain HTTP |
 | `-v` | `--version` | | | Show version |
 | `-h` | `--help` | | | Show help |
 

@@ -4,6 +4,14 @@ Planned features and improvements for hp.
 
 ## Completed
 
+### v0.7.0 - Protocol Downgrade (DONE)
+
+- [x] `-d/--downgrade` flag for auto-downgrade on 3 consecutive failures (secure only)
+- [x] `-D/--downgrade-insecure` flag for full downgrade including plain HTTP
+- [x] Fallback chain: HTTP/3 → HTTP/2 → HTTPS → HTTP (with -D)
+- [x] Visual downgrade indicator message
+- [x] Header reprints with new protocol after downgrade
+
 ### v0.6.1 - Display & Validation Improvements (DONE)
 
 - [x] Show resolved IP in header: `dns.google [8.8.8.8]`

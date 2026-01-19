@@ -2,6 +2,20 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.7.0] - 2026-01-19
+
+### Added
+
+- `-d/--downgrade` flag for auto-downgrade on 3 consecutive failures (secure only: HTTP/3 → HTTP/2 → HTTPS)
+- `-D/--downgrade-insecure` flag for full downgrade including plain HTTP
+- Protocol level tracking with dynamic client recreation on downgrade
+- Visual downgrade indicator: `↓ Downgrading to HTTP/2 after 3 failures`
+
+### Changed
+
+- Header reprints with new protocol after downgrade
+- Refactored client creation into `createClient()` helper function
+
 ## [0.6.1] - 2025-01-19
 
 ### Added
