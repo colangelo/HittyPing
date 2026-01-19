@@ -105,13 +105,15 @@ After each iteration, run `bd list` to check remaining tasks.
 
 If no open issues remain:
 
-1. **Sync back to OpenSpec**:
+1. **Sync back to OpenSpec** (REQUIRED before archive):
 
 ```bash
 ./PROTOCOLS/scripts/beads-to-openspec.py
 ```
 
-1. **Verify tasks.md** is updated with all `[x]` marks
+> **WARNING**: The OpenSpec archiver does not know about Beads. You MUST run this sync before `openspec archive` or tasks.md will have unchecked items.
+
+2. **Verify tasks.md** is updated with all `[x]` marks
 
 2. **Update docs**: CHANGELOG, ROADMAP, CLAUDE.md
 

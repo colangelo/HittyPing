@@ -57,6 +57,9 @@ After an OpenSpec proposal is approved and validated, convert tasks to Beads for
 ./PROTOCOLS/scripts/beads-to-openspec.py
 ```
 
+**IMPORTANT - Before `openspec archive`:**
+Always run `./PROTOCOLS/scripts/beads-to-openspec.py` first to sync completed task status back to `tasks.md`. The OpenSpec archiver does not know about Beads - skipping this step leaves tasks unchecked.
+
 For detailed workflow: see `PROTOCOLS/OPENSPEC-BEADS-WORKFLOW.md`
 
 ### Beads / MCP-Agent-Mail protocol
