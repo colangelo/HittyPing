@@ -26,6 +26,28 @@ install-http3: build-http3
 run *ARGS: build
     ./hp {{ARGS}}
 
+# Run tests
+test:
+    go test -v ./...
+
+# Format code
+fmt:
+    go fmt ./...
+
+# Run go vet
+vet:
+    go vet ./...
+
+# Local CI: fmt check, vet, test
+ci:
+    @echo "Checking fmt..."
+    @test -z "$(go fmt ./...)" || (echo "go fmt needed" && exit 1)
+    @echo "Running vet..."
+    go vet ./...
+    @echo "Running tests..."
+    go test -v ./...
+    @echo "CI passed"
+
 # Clean build artifacts
 clean:
     rm -f hp

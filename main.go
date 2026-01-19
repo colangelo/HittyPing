@@ -37,10 +37,10 @@ var blocks = []string{"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"}
 
 // Protocol levels for downgrade feature
 const (
-	protoHTTP1  = 0 // Plain HTTP/1.1 (insecure)
-	protoHTTPS  = 1 // HTTPS (auto-negotiate)
-	protoHTTP2  = 2 // HTTP/2 (forced)
-	protoHTTP3  = 3 // HTTP/3 (QUIC)
+	protoHTTP1 = 0 // Plain HTTP/1.1 (insecure)
+	protoHTTPS = 1 // HTTPS (auto-negotiate)
+	protoHTTP2 = 2 // HTTP/2 (forced)
+	protoHTTP3 = 3 // HTTP/3 (QUIC)
 )
 
 var protoNames = map[int]string{
@@ -52,7 +52,7 @@ var protoNames = map[int]string{
 
 // Configurable thresholds (ms)
 var (
-	minLatency      int64 = 0   // baseline for smallest block
+	minLatency      int64 = 0 // baseline for smallest block
 	greenThreshold  int64 = 150
 	yellowThreshold int64 = 400
 )
