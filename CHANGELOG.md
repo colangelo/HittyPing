@@ -2,6 +2,23 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.7.3] - 2026-01-19
+
+### Added
+
+- MIT LICENSE file
+- Platform support note in README (developed/tested on macOS)
+- Windows builds (amd64, arm64) in release workflow
+
+## [0.7.2] - 2026-01-19
+
+### Added
+
+- GitHub Actions CI workflow (test on push/PR)
+- GitHub Actions release workflow (build on tag)
+- Unit tests for `getEnvInt`, `getURLForProto`, `getBlock`
+- Linux arm64 builds in release matrix
+
 ## [0.7.1] - 2026-01-19
 
 ### Changed
