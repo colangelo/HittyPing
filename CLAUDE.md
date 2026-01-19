@@ -140,7 +140,7 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 
 ## Architecture
 
-Go application using `spf13/pflag` for POSIX-style CLI flags.
+Go application using `spf13/pflag` for POSIX-style CLI flags. Uses latest stable Go (currently 1.25).
 
 Key functions:
 
