@@ -118,12 +118,20 @@ func main() {
 	url := "https://1.1.1.1"
 	if flag.NArg() > 0 {
 		url = flag.Arg(0)
+		// Strip any existing scheme
+		url = strings.TrimPrefix(url, "https://")
+		url = strings.TrimPrefix(url, "http://")
+
+		// Check if it's an IPv6 address that needs brackets
+		if ip := net.ParseIP(url); ip != nil && ip.To4() == nil {
+			// It's an IPv6 address, wrap in brackets
+			url = "[" + url + "]"
+		}
+
+		// Add appropriate scheme
 		if *useHTTP1 {
-			// Force HTTP/1.1
-			url = strings.TrimPrefix(url, "https://")
-			url = strings.TrimPrefix(url, "http://")
 			url = "http://" + url
-		} else if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		} else {
 			url = "https://" + url
 		}
 	} else if *useHTTP1 {
@@ -135,10 +143,12 @@ func main() {
 
 	// Resolve hostname to IP for display
 	resolvedIP := ""
-	// Check if displayURL is already an IP address
-	if ip := net.ParseIP(displayURL); ip == nil {
+	// Strip brackets from IPv6 for parsing and display
+	hostForLookup := strings.TrimPrefix(strings.TrimSuffix(displayURL, "]"), "[")
+	// Check if it's already an IP address
+	if ip := net.ParseIP(hostForLookup); ip == nil {
 		// It's a hostname, resolve it
-		if ips, err := net.LookupHost(displayURL); err == nil && len(ips) > 0 {
+		if ips, err := net.LookupHost(hostForLookup); err == nil && len(ips) > 0 {
 			resolvedIP = ips[0]
 		}
 	}
