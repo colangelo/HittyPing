@@ -12,7 +12,7 @@ This document describes how to use **bd** (beads issue tracker), **mcp_agent_mai
 
 ## Architecture
 
-```
+```txt
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         Human Operator                               │
 │                              ↓                                       │
@@ -85,11 +85,13 @@ macro_start_session(
 ```
 
 This will:
+
 - Ensure the project exists in agent-mail
 - Register/update the agent identity (auto-generates name like "BlueLake")
 - Fetch recent inbox messages
 
 **Agent Naming Rules:**
+
 - Names are auto-generated adjective+noun combinations: `BlueLake`, `GreenCastle`, `RedStone`
 - Names are NOT descriptive: avoid `BackendWorker`, `UIRefactorer`
 - Each session gets a unique name to track who did what
@@ -135,6 +137,7 @@ file_reservation_paths(
 ```
 
 **File Reservation Behavior:**
+
 - Other agents will see conflicts if they try to reserve the same files
 - TTL auto-expires reservations if agent crashes
 - Use `renew_file_reservations` for long-running work
@@ -425,6 +428,7 @@ file_reservation_paths response:
 ```
 
 **Resolution options:**
+
 1. Wait for the holder to finish
 2. Message the holder to coordinate
 3. Work on a different task
@@ -433,6 +437,7 @@ file_reservation_paths response:
 ### Task Conflicts
 
 The dependency system prevents conflicts:
+
 - Tasks with blockers don't appear in `bd ready`
 - Assigned tasks show the assignee in `bd list`
 - `--status in_progress` signals active work
@@ -481,6 +486,7 @@ wc -l .beads/issues.jsonl
 ### Agent can't reserve files
 
 Check who holds the reservation:
+
 ```bash
 # In Claude Code, check the conflict response
 # Or look at .agent-mail/file_reservations/
@@ -489,6 +495,7 @@ Check who holds the reservation:
 ### Tasks not appearing in bd ready
 
 Check dependencies:
+
 ```bash
 bd dep tree <task-id>
 bd show <task-id>

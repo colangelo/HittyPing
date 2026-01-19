@@ -43,22 +43,41 @@ go build -o hp .                # Default build
 go build -tags http3 -o hp .    # With HTTP/3 support
 ```
 
-## Beads workflow
+## Coding Agents coordination
 
-Check ./BD_WORKFLOW.md
+## Task Tracking with Beads
 
-## MCP Agent Mail: coordination for multi-agent workflows
+After an OpenSpec proposal is approved and validated, convert tasks to Beads for implementation tracking:
+
+```bash
+# Convert openspec tasks to beads issues
+./PROTOCOLS/scripts/openspec-to-beads.py <change-id>
+
+# Sync completed status back before archiving
+./PROTOCOLS/scripts/beads-to-openspec.py
+```
+
+For detailed workflow: see `PROTOCOLS/OPENSPEC-BEADS-WORKFLOW.md`
+
+### Beads / MCP-Agent-Mail protocol
+
+Read ./PROTOCOLS/BD-AGENT-MAIL.md
+
+### MCP-Agent-Mail: coordination for multi-agent workflows
 
 What it is
+
 - A mail-like layer that lets coding agents coordinate asynchronously via MCP tools and resources.
 - Provides identities, inbox/outbox, searchable threads, and advisory file reservations, with human-auditable artifacts in Git.
 
 Why it's useful
+
 - Prevents agents from stepping on each other with explicit file reservations (leases) for files/globs.
 - Keeps communication out of your token budget by storing messages in a per-project archive.
 - Offers quick reads (`resource://inbox/...`, `resource://thread/...`) and macros that bundle common flows.
 
 How to use effectively
+
 1) Same repository
    - Register an identity: call `ensure_project`, then `register_agent` using this repo's absolute path as `project_key`.
    - Reserve files before you edit: `file_reservation_paths(project_key, agent_name, ["src/**"], ttl_seconds=3600, exclusive=true)` to signal intent and avoid conflict.
@@ -71,10 +90,12 @@ How to use effectively
    - Option B (separate projects): each repo has its own `project_key`; use `macro_contact_handshake` or `request_contact`/`respond_contact` to link agents, then message directly. Keep a shared `thread_id` (e.g., ticket key) across repos for clean summaries/audits.
 
 Macros vs granular tools
+
 - Prefer macros when you want speed or are on a smaller model: `macro_start_session`, `macro_prepare_thread`, `macro_file_reservation_cycle`, `macro_contact_handshake`.
 - Use granular tools when you need control: `register_agent`, `file_reservation_paths`, `send_message`, `fetch_inbox`, `acknowledge_message`.
 
 Common pitfalls
+
 - "from_agent not registered": always `register_agent` in the correct `project_key` first.
 - "FILE_RESERVATION_CONFLICT": adjust patterns, wait for expiry, or use a non-exclusive reservation when appropriate.
 - Auth errors: if JWT+JWKS is enabled, include a bearer token with a `kid` that matches server JWKS; static bearer is used only when JWT is disabled.
@@ -122,6 +143,7 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 Go application using `spf13/pflag` for POSIX-style CLI flags.
 
 Key functions:
+
 - `measureRTT()` - HEAD request timing
 - `createClient()` - Creates HTTP client for given protocol level
 - `getURLForProto()` - Returns URL with appropriate scheme for protocol
