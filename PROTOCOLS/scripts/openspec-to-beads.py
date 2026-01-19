@@ -26,8 +26,8 @@ from rich.table import Table
 
 console = Console()
 
-# Project root detection
-PROJECT_ROOT = Path(__file__).parent.parent
+# Project root detection (script is in PROTOCOLS/scripts/, so go up 2 levels)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
 OPENSPEC_DIR = PROJECT_ROOT / "openspec"
 BEADS_DIR = PROJECT_ROOT / ".beads"
 MAPPING_FILE = BEADS_DIR / "openspec-mapping.json"
