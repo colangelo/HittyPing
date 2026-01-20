@@ -304,7 +304,7 @@ func measureRTT(client *http.Client, url string, protoLevel int) (time.Duration,
 	if err != nil {
 		return 0, err
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 
 	// Check HTTP/2 requirement
 	if protoLevel == protoHTTP2 && resp.Proto != "HTTP/2.0" {
