@@ -1,7 +1,7 @@
 # `hp :// HittyPing`
 
 <p align="center">
-  <img src="img/hittyping.png" alt="hp output" width="640">
+  <img src="img/hittyping.png" alt="hp output" width="730">
 </p>
 
 <p align="center">
