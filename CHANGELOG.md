@@ -4,10 +4,21 @@ All notable changes to hp (hittyping) will be documented in this file.
 
 ## [0.7.4] - 2026-01-19
 
+### Added
+
+- Homebrew tap: `brew install colangelo/tap/hp`
+- Scoop bucket for Windows installation
+- govulncheck in CI (local justfile + GitHub Actions)
+- Automated Homebrew/Scoop manifest updates in release workflow
+
 ### Fixed
 
 - Windows build: split terminal width detection into platform-specific files
 - Use portable `os.Interrupt` for signal handling
+
+### Changed
+
+- Improved downgrade message wording
 
 ## [0.7.3] - 2026-01-19
 
@@ -90,13 +101,10 @@ All notable changes to hp (hittyping) will be documented in this file.
 
 ### Added
 
-- HTTP/3 (QUIC) support via `--http3` flag
-- Build tag system for optional HTTP/3: `go build -tags http3`
-- New justfile recipes: `build-http3`, `install-http3`
+- HTTP/3 (QUIC) support via `--http3` flag (always included in build, ~10MB)
 
 ### Changed
 
-- Binary sizes: ~7.6MB (default) vs ~10MB (with HTTP/3)
 - Module renamed to `github.com/ac/hp`
 
 ### Notes

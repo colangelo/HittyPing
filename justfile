@@ -25,20 +25,18 @@ test:
 fmt:
     go fmt ./...
 
-# Run go vet
-vet:
-    go vet ./...
+# Run golangci-lint
+lint:
+    go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
 
 # Run vulnerability check
 vuln:
     go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
-# Local CI: fmt check, vet, vuln, test
+# Local CI: lint, vuln, test
 ci:
-    @echo "Checking fmt..."
-    @test -z "$(go fmt ./...)" || (echo "go fmt needed" && exit 1)
-    @echo "Running vet..."
-    go vet ./...
+    @echo "Running lint..."
+    go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
     @echo "Running vulnerability check..."
     go run golang.org/x/vuln/cmd/govulncheck@latest ./...
     @echo "Running tests..."
