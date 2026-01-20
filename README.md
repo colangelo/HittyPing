@@ -15,7 +15,7 @@ PrettyPing-style HTTP(S) latency monitor with Unicode block visualization and co
 
 ## Features
 
-- Prettyping-style Unicode block visualization
+- PrettyPing-style Unicode block visualization
 - Color-coded latency (green/yellow/red)
 - Live min/avg/max statistics
 - Protocol selection: HTTP/1.1 (`-1`), HTTP/2 (`-2`), HTTP/3 (QUIC) (`-3`)
