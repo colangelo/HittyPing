@@ -19,7 +19,7 @@ PrettyPing-style HTTP(S) latency monitor with Unicode block visualization and co
 - Color-coded latency (green/yellow/red)
 - Live min/avg/max statistics
 - Protocol selection: HTTP/1.1 (`-1`), HTTP/2 (`-2`), HTTP/3 (QUIC) (`-3`)
-- Auto-downgrade HTTP/3 => 2 => 1 => plain on failures (`-d` till secure/https, `-D` till insecure/http)
+- Auto-downgrade HTTP/3 → 2 → 1 → plain on failures (`-d` secure, `-D` insecure)
 - Request count limit (`-c`) like `ping -c`
 - Summary after graceful exit with Ctrl+C
 - Configurable color thresholds via flags or env vars
