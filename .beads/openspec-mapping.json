@@ -1,0 +1,207 @@
+{
+  "change_id": "add-tests-and-ci",
+  "created_at": "2026-01-19T17:07:34.010202",
+  "source_file": "openspec/changes/add-tests-and-ci/tasks.md",
+  "tasks": {
+    "1.1.1": {
+      "beads_id": "hittyping-ji0",
+      "status": "closed",
+      "description": "Create `main_test.go` with package declaration and imports",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.1 Create Test File Structure",
+      "line_number": 7
+    },
+    "1.2.1": {
+      "beads_id": "hittyping-18c",
+      "status": "closed",
+      "description": "Test returns default when env var not set",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.2 Test getEnvInt Function",
+      "line_number": 11
+    },
+    "1.2.2": {
+      "beads_id": "hittyping-0m7",
+      "status": "closed",
+      "description": "Test returns parsed value when env var is valid integer",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.2 Test getEnvInt Function",
+      "line_number": 12
+    },
+    "1.2.3": {
+      "beads_id": "hittyping-cks",
+      "status": "closed",
+      "description": "Test returns default when env var is invalid (non-numeric)",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.2 Test getEnvInt Function",
+      "line_number": 13
+    },
+    "1.3.1": {
+      "beads_id": "hittyping-6qx",
+      "status": "closed",
+      "description": "Test returns http:// for protoHTTP1",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.3 Test getURLForProto Function",
+      "line_number": 17
+    },
+    "1.3.2": {
+      "beads_id": "hittyping-6fw",
+      "status": "closed",
+      "description": "Test returns https:// for protoHTTPS, protoHTTP2, protoHTTP3",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.3 Test getURLForProto Function",
+      "line_number": 18
+    },
+    "1.4.1": {
+      "beads_id": "hittyping-dfb",
+      "status": "closed",
+      "description": "Test green zone blocks (0-2) for latencies below greenThreshold",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.4 Test getBlock Function",
+      "line_number": 22
+    },
+    "1.4.2": {
+      "beads_id": "hittyping-dy3",
+      "status": "closed",
+      "description": "Test yellow zone blocks (3-4) for latencies between green and yellow thresholds",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.4 Test getBlock Function",
+      "line_number": 23
+    },
+    "1.4.3": {
+      "beads_id": "hittyping-yi6",
+      "status": "closed",
+      "description": "Test red zone blocks (5-7) for latencies at or above yellowThreshold",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.4 Test getBlock Function",
+      "line_number": 24
+    },
+    "1.4.4": {
+      "beads_id": "hittyping-dcv",
+      "status": "closed",
+      "description": "Test edge cases: minLatency boundary, threshold boundaries",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.4 Test getBlock Function",
+      "line_number": 25
+    },
+    "1.5.1": {
+      "beads_id": "hittyping-6u0",
+      "status": "closed",
+      "description": "Run `go test -v ./...` and confirm all tests pass",
+      "phase": "Phase 1: Unit Tests",
+      "section": "1.5 Verify Tests Pass",
+      "line_number": 29
+    },
+    "2.1.1": {
+      "beads_id": "hittyping-gfu",
+      "status": "closed",
+      "description": "Create `.github/workflows/ci.yml`",
+      "phase": "Phase 2: CI Workflow",
+      "section": "2.1 Create CI Workflow",
+      "line_number": 35
+    },
+    "2.1.2": {
+      "beads_id": "hittyping-atn",
+      "status": "closed",
+      "description": "Configure triggers for push and pull_request events",
+      "phase": "Phase 2: CI Workflow",
+      "section": "2.1 Create CI Workflow",
+      "line_number": 36
+    },
+    "2.1.3": {
+      "beads_id": "hittyping-7pq",
+      "status": "closed",
+      "description": "Set up Go (latest stable) environment",
+      "phase": "Phase 2: CI Workflow",
+      "section": "2.1 Create CI Workflow",
+      "line_number": 37
+    },
+    "2.1.4": {
+      "beads_id": "hittyping-h7f",
+      "status": "closed",
+      "description": "Add test execution step",
+      "phase": "Phase 2: CI Workflow",
+      "section": "2.1 Create CI Workflow",
+      "line_number": 38
+    },
+    "2.2.1": {
+      "beads_id": "hittyping-8xx",
+      "status": "closed",
+      "description": "Push to dev branch and verify workflow runs",
+      "phase": "Phase 2: CI Workflow",
+      "section": "2.2 Verify CI",
+      "line_number": 42
+    },
+    "3.1.1": {
+      "beads_id": "hittyping-bbk",
+      "status": "closed",
+      "description": "Create `.github/workflows/release.yml`",
+      "phase": "Phase 3: Release Workflow",
+      "section": "3.1 Create Release Workflow",
+      "line_number": 48
+    },
+    "3.1.2": {
+      "beads_id": "hittyping-71t",
+      "status": "closed",
+      "description": "Configure trigger for v* tags",
+      "phase": "Phase 3: Release Workflow",
+      "section": "3.1 Create Release Workflow",
+      "line_number": 49
+    },
+    "3.1.3": {
+      "beads_id": "hittyping-fnr",
+      "status": "closed",
+      "description": "Define build matrix (darwin/linux \u00d7 amd64/arm64 \u00d7 default/http3)",
+      "phase": "Phase 3: Release Workflow",
+      "section": "3.1 Create Release Workflow",
+      "line_number": 50
+    },
+    "3.1.4": {
+      "beads_id": "hittyping-xd8",
+      "status": "closed",
+      "description": "Add test step before build",
+      "phase": "Phase 3: Release Workflow",
+      "section": "3.1 Create Release Workflow",
+      "line_number": 51
+    },
+    "3.1.5": {
+      "beads_id": "hittyping-nmc",
+      "status": "closed",
+      "description": "Add build steps for default and http3 variants",
+      "phase": "Phase 3: Release Workflow",
+      "section": "3.1 Create Release Workflow",
+      "line_number": 52
+    },
+    "3.1.6": {
+      "beads_id": "hittyping-aud",
+      "status": "closed",
+      "description": "Configure `softprops/action-gh-release` for artifact upload",
+      "phase": "Phase 3: Release Workflow",
+      "section": "3.1 Create Release Workflow",
+      "line_number": 53
+    },
+    "3.2.1": {
+      "beads_id": "hittyping-okn",
+      "status": "closed",
+      "description": "Create test tag and verify workflow completes",
+      "phase": "Phase 3: Release Workflow",
+      "section": "3.2 Verify Release",
+      "line_number": 57
+    },
+    "3.2.2": {
+      "beads_id": "hittyping-t5r",
+      "status": "closed",
+      "description": "Verify binaries appear on GitHub Releases page",
+      "phase": "Phase 3: Release Workflow",
+      "section": "3.2 Verify Release",
+      "line_number": 58
+    },
+    "3.2.3": {
+      "beads_id": "hittyping-soy",
+      "status": "closed",
+      "description": "Clean up test tag/release after verification",
+      "phase": "Phase 3: Release Workflow",
+      "section": "3.2 Verify Release",
+      "line_number": 59
+    }
+  }
+}
