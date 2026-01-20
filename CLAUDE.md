@@ -48,6 +48,19 @@ git commit -m "chore: remove dev-only paths from main"
 
 Or reject these paths during PR review on GitHub.
 
+**⚠️ DANGER: Never merge main → dev without care!**
+
+Merging main into dev will bring the "remove dev-only paths" commit, deleting all dev tooling. If you must sync main into dev:
+
+```bash
+# Option 1: Cherry-pick specific commits instead of merge
+git cherry-pick <commit-sha>
+
+# Option 2: If you already merged, immediately restore:
+git checkout HEAD~1 -- .beads/ .claude/ PROTOCOLS/ openspec/ AGENTS.md
+git commit -m "chore: restore dev-only paths after merge from main"
+```
+
 ---
 
 ## Repository Purpose
