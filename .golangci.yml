@@ -1,23 +1,20 @@
-# golangci-lint configuration
+# golangci-lint v2 configuration
 # https://golangci-lint.run/usage/configuration/
+
+version: "2"
 
 linters:
   enable:
     - errcheck      # Check for unchecked errors
-    - gosimple      # Simplify code
     - govet         # Report suspicious constructs
     - ineffassign   # Detect unused assignments
-    - staticcheck   # Static analysis checks
+    - staticcheck   # Static analysis checks (includes gosimple)
     - unused        # Find unused code
-
-linters-settings:
-  errcheck:
-    exclude-functions:
-      - fmt.Fprintf
-      - fmt.Printf
-      - fmt.Print
-      - os.Setenv
-      - os.Unsetenv
-
-issues:
-  exclude-use-default: false
+  settings:
+    errcheck:
+      exclude-functions:
+        - fmt.Fprintf
+        - fmt.Printf
+        - fmt.Print
+        - os.Setenv
+        - os.Unsetenv

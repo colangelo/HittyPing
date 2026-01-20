@@ -27,7 +27,7 @@ fmt:
 
 # Run golangci-lint
 lint:
-    go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
+    go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest run
 
 # Run vulnerability check
 vuln:
@@ -36,7 +36,7 @@ vuln:
 # Local CI: lint, vuln, test
 ci:
     @echo "Running lint..."
-    go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
+    go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest run
     @echo "Running vulnerability check..."
     go run golang.org/x/vuln/cmd/govulncheck@latest ./...
     @echo "Running tests..."
