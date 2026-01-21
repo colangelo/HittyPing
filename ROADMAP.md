@@ -77,11 +77,62 @@ Planned features and improvements for hp.
 
 ## Planned
 
+### Multi-Target Mode
+
+Monitor multiple hosts simultaneously with independent timing per target.
+
+```sh
+hp google.com cloudflare.com 1.1.1.1
+```
+
+**Design**: Stacked rows with labels above bars (see `docs/multi-target-spec.md`)
+
+```txt
+HP multi-target (3 hosts)
+Legend: ▁▂▃<150ms ▄▅<400ms ▆▇█>=400ms !fail
+
+google.com [142.250.180.14]
+▁▁▂▁▄▃▁▂▁▁▂▃▁▁▂▁▁
+
+cloudflare.com [104.16.132.229]
+▁▁▁▁▁▁▂▁▁▁▁▁▁▁▁▁▁
+
+1.1.1.1
+▁▁▁▁▂▁▁▁▁▁▁▁▂▁▁▁▁
+```
+
+**Implementation approach**: Raw ANSI for initial version (keeps it simple). Could migrate to Bubble Tea later if interactive features are added.
+
+---
+
 ## Ideas / Under Consideration
+
+### Near-term Enhancements
 
 - [ ] `-j/--jitter` flag to add random variation to interval (anti-fingerprinting)
 - [ ] DNS resolution timing breakdown (separate from HTTP RTT)
 - [ ] TCP connection timing vs TLS handshake vs HTTP response
 - [ ] JSON output mode for scripting
 - [ ] Configuration file support (~/.config/hp.toml)
-- [ ] Multiple targets in parallel
+
+### TUI Evolution (Bubble Tea)
+
+If hp evolves toward interactive features, consider migrating to [Bubble Tea](https://github.com/charmbracelet/bubbletea) TUI framework:
+
+**Benefits**:
+
+- Clean Elm architecture (Model-Update-View)
+- Built-in resize handling, input, mouse support
+- Composable components via lipgloss styling
+- Easier to maintain and test
+
+**Potential features enabled by Bubble Tea**:
+
+- [ ] Interactive mode (pause/resume, keyboard shortcuts)
+- [ ] Target selection and drill-down
+- [ ] Scrollable history buffer
+- [ ] Live dashboard with stats panels
+- [ ] Mouse support for target selection
+- [ ] Split-pane views (targets + detail)
+
+**Trade-off**: Adds ~2-4MB to binary size. Worth it only if interactive features are desired.
