@@ -86,7 +86,7 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 | `-k` | `--insecure` | | false | Skip TLS certificate verification |
 | `-1` | `--http` | | false | Use plain HTTP/1.1 |
 | `-2` | `--http2` | | false | Force HTTP/2 (fail if not negotiated) |
-| `-3` | `--http3` | | false | Use HTTP/3 (QUIC) |
+| `-3` | `--http3` | | false | Use HTTP/3 (QUIC) (fail if not negotiated) |
 | `-d` | `--downgrade` | | false | Auto-downgrade on 3 failures (secure only) |
 | `-D` | `--downgrade-insecure` | | false | Auto-downgrade including plain HTTP |
 | `-v` | `--version` | | | Show version |
@@ -97,7 +97,7 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 - **Green** (▁▂▃): Fast - below green threshold
 - **Yellow** (▄▅): Medium - between green and yellow thresholds
 - **Red** (▆▇█): Slow - above yellow threshold
-- **Red !**: Request failed
+- **Red** ( ! ): Request failed
 
 Block height scales within each color zone based on latency.
 
@@ -105,6 +105,10 @@ Block height scales within each color zone based on latency.
 
 Developed and tested on macOS.
 Linux and Windows builds are provided but not actively tested.
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for planned features including multi-target mode and potential TUI enhancements.
 
 ## License
 
