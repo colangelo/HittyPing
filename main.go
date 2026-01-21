@@ -89,7 +89,7 @@ func main() {
 	insecure := flag.BoolP("insecure", "k", false, "skip TLS certificate verification")
 	useHTTP1 := flag.BoolP("http", "1", false, "use plain HTTP/1.1")
 	useHTTP2 := flag.BoolP("http2", "2", false, "force HTTP/2 (fail if not negotiated)")
-	useHTTP3 := flag.BoolP("http3", "3", false, "use HTTP/3 (QUIC) - requires build with -tags http3")
+	useHTTP3 := flag.BoolP("http3", "3", false, "use HTTP/3 (QUIC)")
 	downgrade := flag.BoolP("downgrade", "d", false, "auto-downgrade protocol on failures (secure only)")
 	downgradeInsecure := flag.BoolP("downgrade-insecure", "D", false, "auto-downgrade including plain HTTP")
 	showVersion := flag.BoolP("version", "v", false, "show version and exit")
