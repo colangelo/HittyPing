@@ -13,6 +13,10 @@ install: build
     sudo cp hp /usr/local/bin/
     sudo codesign --force --sign - /usr/local/bin/hp
 
+# Uninstall from /usr/local/bin
+uninstall:
+    sudo rm -f /usr/local/bin/hp
+
 # Build and run with default target
 run *ARGS: build
     ./hp {{ARGS}}
