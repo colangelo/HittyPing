@@ -2,6 +2,21 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.7.5] - 2026-01-23
+
+### Added
+
+- Uninstall recipe in justfile (`just uninstall`)
+
+### Fixed
+
+- Silence quic-go UDP buffer warnings that corrupted terminal display on Linux
+- Remove outdated build tag reference from `--http3` help text
+
+### Changed
+
+- Header styling: hostname now bold, IP address highlighted for better visibility
+
 ## [0.7.4] - 2026-01-19
 
 ### Added
