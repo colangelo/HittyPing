@@ -3,6 +3,8 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -79,6 +81,9 @@ type stats struct {
 }
 
 func main() {
+	// Silence quic-go UDP buffer warnings that corrupt terminal display
+	log.SetOutput(io.Discard)
+
 	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
 	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
 	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
@@ -197,9 +202,9 @@ func main() {
 		// Move to beginning of line and clear
 		fmt.Print(col0 + clearLn)
 		if resolvedIP != "" {
-			fmt.Printf("%sHittyPing (v%s) %s [%s] (%s)%s\n", gray, version, displayURL, resolvedIP, protoNames[currentProto], reset)
+			fmt.Printf("%sHittyPing (v%s) %s%s%s [%s%s%s] (%s)%s\n", gray, version, reset+bold, displayURL, reset+gray, reset, resolvedIP, gray, protoNames[currentProto], reset)
 		} else {
-			fmt.Printf("%sHittyPing (v%s) %s (%s)%s\n", gray, version, displayURL, protoNames[currentProto], reset)
+			fmt.Printf("%sHittyPing (v%s) %s%s %s(%s)%s\n", gray, version, reset+bold, displayURL, reset+gray, protoNames[currentProto], reset)
 		}
 	}
 	printHeader()
