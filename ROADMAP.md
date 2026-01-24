@@ -68,6 +68,13 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.7.5 - Display Improvements
+
+- [x] Silence quic-go UDP buffer warnings on Linux
+- [x] Header styling: bold hostname, visible IP
+- [x] Remove outdated build tag from `--http3` help
+- [x] Add `just uninstall` recipe
+
 ### v0.7.4 - Windows Build Fix
 
 - [x] Platform-specific terminal width detection (terminal_unix.go, terminal_windows.go)

@@ -3,6 +3,8 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -14,7 +16,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const version = "0.7.4"
+const version = "0.7.5"
 
 const (
 	// ANSI colors
@@ -79,6 +81,9 @@ type stats struct {
 }
 
 func main() {
+	// Silence quic-go UDP buffer warnings that corrupt terminal display
+	log.SetOutput(io.Discard)
+
 	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
 	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
 	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
@@ -89,7 +94,7 @@ func main() {
 	insecure := flag.BoolP("insecure", "k", false, "skip TLS certificate verification")
 	useHTTP1 := flag.BoolP("http", "1", false, "use plain HTTP/1.1")
 	useHTTP2 := flag.BoolP("http2", "2", false, "force HTTP/2 (fail if not negotiated)")
-	useHTTP3 := flag.BoolP("http3", "3", false, "use HTTP/3 (QUIC) - requires build with -tags http3")
+	useHTTP3 := flag.BoolP("http3", "3", false, "use HTTP/3 (QUIC)")
 	downgrade := flag.BoolP("downgrade", "d", false, "auto-downgrade protocol on failures (secure only)")
 	downgradeInsecure := flag.BoolP("downgrade-insecure", "D", false, "auto-downgrade including plain HTTP")
 	showVersion := flag.BoolP("version", "v", false, "show version and exit")
@@ -197,9 +202,9 @@ func main() {
 		// Move to beginning of line and clear
 		fmt.Print(col0 + clearLn)
 		if resolvedIP != "" {
-			fmt.Printf("%sHittyPing (v%s) %s [%s] (%s)%s\n", gray, version, displayURL, resolvedIP, protoNames[currentProto], reset)
+			fmt.Printf("%sHittyPing (v%s) %s%s%s [%s%s%s] (%s)%s\n", gray, version, reset+bold, displayURL, reset+gray, reset, resolvedIP, gray, protoNames[currentProto], reset)
 		} else {
-			fmt.Printf("%sHittyPing (v%s) %s (%s)%s\n", gray, version, displayURL, protoNames[currentProto], reset)
+			fmt.Printf("%sHittyPing (v%s) %s%s %s(%s)%s\n", gray, version, reset+bold, displayURL, reset+gray, protoNames[currentProto], reset)
 		}
 	}
 	printHeader()

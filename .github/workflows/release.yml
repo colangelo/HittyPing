@@ -88,10 +88,15 @@ jobs:
       - name: List artifacts
         run: ls -la hp-*
 
+      - name: Generate checksums
+        run: sha256sum hp-* > checksums.txt && cat checksums.txt
+
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          files: hp-*
+          files: |
+            hp-*
+            checksums.txt
           generate_release_notes: true
 
   update-homebrew:

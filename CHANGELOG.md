@@ -2,6 +2,32 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.7.5] - 2026-01-24
+
+### Added
+
+- Uninstall recipe in justfile (`just uninstall`)
+- OpenSSF Scorecard workflow and README badge
+- CodeQL security scanning workflow
+- SECURITY.md with vulnerability reporting policy
+- SHA-256 checksums.txt in GitHub releases
+- Branch protection ruleset for main branch
+- Security checklist documentation (`docs/security-checklist.md`)
+
+### Fixed
+
+- Silence quic-go UDP buffer warnings that corrupted terminal display on Linux
+- Remove outdated build tag reference from `--http3` help text
+
+### Changed
+
+- Header styling: hostname now bold, IP address highlighted for better visibility
+
+### Security
+
+- Enable GitHub Advanced Security features (Dependabot, secret scanning, push protection)
+- Require status checks and CodeQL scanning for merges to main
+
 ## [0.7.4] - 2026-01-19
 
 ### Added
