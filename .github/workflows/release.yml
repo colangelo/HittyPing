@@ -130,6 +130,9 @@ jobs:
     name: Update Homebrew Formula
     needs: release
     runs-on: ubuntu-latest
+    env:
+      # Base64-encoded Homebrew formula template (avoids YAML parsing issues)
+      FORMULA_TEMPLATE: Y2xhc3MgSHAgPCBGb3JtdWxhCiAgZGVzYyAiUHJldHR5cGluZy1zdHlsZSBIVFRQKFMpIGxhdGVuY3kgbW9uaXRvciIKICBob21lcGFnZSAiaHR0cHM6Ly9naXRodWIuY29tL2NvbGFuZ2Vsby9IaXR0eVBpbmciCiAgdmVyc2lvbiAiVkVSU0lPTl9QTEFDRUhPTERFUiIKICBsaWNlbnNlICJNSVQiCgogIG9uX21hY29zIGRvCiAgICBpZiBIYXJkd2FyZTo6Q1BVLmFybT8KICAgICAgdXJsICJodHRwczovL2dpdGh1Yi5jb20vY29sYW5nZWxvL0hpdHR5UGluZy9yZWxlYXNlcy9kb3dubG9hZC92I3t2ZXJzaW9ufS9ocC1kYXJ3aW4tYXJtNjQiCiAgICAgIHNoYTI1NiAiREFSV0lOX0FSTTY0X1BMQUNFSE9MREVSIgogICAgZWxzZQogICAgICB1cmwgImh0dHBzOi8vZ2l0aHViLmNvbS9jb2xhbmdlbG8vSGl0dHlQaW5nL3JlbGVhc2VzL2Rvd25sb2FkL3Yje3ZlcnNpb259L2hwLWRhcndpbi1hbWQ2NCIKICAgICAgc2hhMjU2ICJEQVJXSU5fQU1ENjRfUExBQ0VIT0xERVIiCiAgICBlbmQKICBlbmQKCiAgb25fbGludXggZG8KICAgIGlmIEhhcmR3YXJlOjpDUFUuYXJtPwogICAgICB1cmwgImh0dHBzOi8vZ2l0aHViLmNvbS9jb2xhbmdlbG8vSGl0dHlQaW5nL3JlbGVhc2VzL2Rvd25sb2FkL3Yje3ZlcnNpb259L2hwLWxpbnV4LWFybTY0IgogICAgICBzaGEyNTYgIkxJTlVYX0FSTTY0X1BMQUNFSE9MREVSIgogICAgZWxzZQogICAgICB1cmwgImh0dHBzOi8vZ2l0aHViLmNvbS9jb2xhbmdlbG8vSGl0dHlQaW5nL3JlbGVhc2VzL2Rvd25sb2FkL3Yje3ZlcnNpb259L2hwLWxpbnV4LWFtZDY0IgogICAgICBzaGEyNTYgIkxJTlVYX0FNRDY0X1BMQUNFSE9MREVSIgogICAgZW5kCiAgZW5kCgogIGRlZiBpbnN0YWxsCiAgICBiaW5hcnkgPSBEaXJbImhwLSoiXS5maXJzdCB8fCAiaHAiCiAgICBiaW4uaW5zdGFsbCBiaW5hcnkgPT4gImhwIgogIGVuZAoKICB0ZXN0IGRvCiAgICBhc3NlcnRfbWF0Y2ggImhwIChoaXR0eXBpbmcpIiwgc2hlbGxfb3V0cHV0KCIje2Jpbn0vaHAgLS12ZXJzaW9uIikKICBlbmQKZW5kCg==
     steps:
       - name: Calculate checksums
         run: |
@@ -138,14 +141,10 @@ jobs:
 
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
-          # Download and hash each binary
           curl -sL "${BASE_URL}/hp-darwin-arm64" | sha256sum | cut -d' ' -f1 > darwin-arm64.sha
           curl -sL "${BASE_URL}/hp-darwin-amd64" | sha256sum | cut -d' ' -f1 > darwin-amd64.sha
           curl -sL "${BASE_URL}/hp-linux-arm64" | sha256sum | cut -d' ' -f1 > linux-arm64.sha
           curl -sL "${BASE_URL}/hp-linux-amd64" | sha256sum | cut -d' ' -f1 > linux-amd64.sha
-
-          echo "Checksums:"
-          cat *.sha
 
       - name: Update homebrew-tap
         env:
@@ -154,54 +153,13 @@ jobs:
           git clone https://x-access-token:${GH_TOKEN}@github.com/colangelo/homebrew-tap.git
           cd homebrew-tap
 
-          DARWIN_ARM64=$(cat ../darwin-arm64.sha)
-          DARWIN_AMD64=$(cat ../darwin-amd64.sha)
-          LINUX_ARM64=$(cat ../linux-arm64.sha)
-          LINUX_AMD64=$(cat ../linux-amd64.sha)
-
-          cat > Formula/hp.rb << 'FORMULA'
-class Hp < Formula
-  desc "Prettyping-style HTTP(S) latency monitor"
-  homepage "https://github.com/colangelo/HittyPing"
-  version "VERSION_PLACEHOLDER"
-  license "MIT"
-
-  on_macos do
-    if Hardware::CPU.arm?
-      url "https://github.com/colangelo/HittyPing/releases/download/v#{version}/hp-darwin-arm64"
-      sha256 "DARWIN_ARM64_PLACEHOLDER"
-    else
-      url "https://github.com/colangelo/HittyPing/releases/download/v#{version}/hp-darwin-amd64"
-      sha256 "DARWIN_AMD64_PLACEHOLDER"
-    end
-  end
-
-  on_linux do
-    if Hardware::CPU.arm?
-      url "https://github.com/colangelo/HittyPing/releases/download/v#{version}/hp-linux-arm64"
-      sha256 "LINUX_ARM64_PLACEHOLDER"
-    else
-      url "https://github.com/colangelo/HittyPing/releases/download/v#{version}/hp-linux-amd64"
-      sha256 "LINUX_AMD64_PLACEHOLDER"
-    end
-  end
-
-  def install
-    binary = Dir["hp-*"].first || "hp"
-    bin.install binary => "hp"
-  end
-
-  test do
-    assert_match "hp (hittyping)", shell_output("#{bin}/hp --version")
-  end
-end
-FORMULA
+          echo "$FORMULA_TEMPLATE" | base64 -d > Formula/hp.rb
 
           sed -i "s/VERSION_PLACEHOLDER/${VERSION}/" Formula/hp.rb
-          sed -i "s/DARWIN_ARM64_PLACEHOLDER/${DARWIN_ARM64}/" Formula/hp.rb
-          sed -i "s/DARWIN_AMD64_PLACEHOLDER/${DARWIN_AMD64}/" Formula/hp.rb
-          sed -i "s/LINUX_ARM64_PLACEHOLDER/${LINUX_ARM64}/" Formula/hp.rb
-          sed -i "s/LINUX_AMD64_PLACEHOLDER/${LINUX_AMD64}/" Formula/hp.rb
+          sed -i "s/DARWIN_ARM64_PLACEHOLDER/$(cat ../darwin-arm64.sha)/" Formula/hp.rb
+          sed -i "s/DARWIN_AMD64_PLACEHOLDER/$(cat ../darwin-amd64.sha)/" Formula/hp.rb
+          sed -i "s/LINUX_ARM64_PLACEHOLDER/$(cat ../linux-arm64.sha)/" Formula/hp.rb
+          sed -i "s/LINUX_AMD64_PLACEHOLDER/$(cat ../linux-amd64.sha)/" Formula/hp.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -221,12 +179,8 @@ FORMULA
 
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
-          # Download and hash Windows binaries
           curl -sL "${BASE_URL}/hp-windows-amd64.exe" | sha256sum | cut -d' ' -f1 > windows-amd64.sha
           curl -sL "${BASE_URL}/hp-windows-arm64.exe" | sha256sum | cut -d' ' -f1 > windows-arm64.sha
-
-          echo "Checksums:"
-          cat *.sha
 
       - name: Update scoop-bucket
         env:
@@ -238,38 +192,34 @@ FORMULA
           WINDOWS_AMD64=$(cat ../windows-amd64.sha)
           WINDOWS_ARM64=$(cat ../windows-arm64.sha)
 
-          cat > bucket/hp.json << MANIFEST
-{
-    "version": "${VERSION}",
-    "description": "Prettyping-style HTTP(S) latency monitor",
-    "homepage": "https://github.com/colangelo/HittyPing",
-    "license": "MIT",
-    "architecture": {
-        "64bit": {
-            "url": "https://github.com/colangelo/HittyPing/releases/download/v${VERSION}/hp-windows-amd64.exe#/hp.exe",
-            "hash": "${WINDOWS_AMD64}"
-        },
-        "arm64": {
-            "url": "https://github.com/colangelo/HittyPing/releases/download/v${VERSION}/hp-windows-arm64.exe#/hp.exe",
-            "hash": "${WINDOWS_ARM64}"
-        }
-    },
-    "bin": "hp.exe",
-    "checkver": {
-        "github": "https://github.com/colangelo/HittyPing"
-    },
-    "autoupdate": {
-        "architecture": {
-            "64bit": {
-                "url": "https://github.com/colangelo/HittyPing/releases/download/v\$version/hp-windows-amd64.exe#/hp.exe"
-            },
-            "arm64": {
-                "url": "https://github.com/colangelo/HittyPing/releases/download/v\$version/hp-windows-arm64.exe#/hp.exe"
-            }
-        }
-    }
-}
-MANIFEST
+          jq -n \
+            --arg version "$VERSION" \
+            --arg hash64 "$WINDOWS_AMD64" \
+            --arg hasharm "$WINDOWS_ARM64" \
+            '{
+              version: $version,
+              description: "Prettyping-style HTTP(S) latency monitor",
+              homepage: "https://github.com/colangelo/HittyPing",
+              license: "MIT",
+              architecture: {
+                "64bit": {
+                  url: "https://github.com/colangelo/HittyPing/releases/download/v\($version)/hp-windows-amd64.exe#/hp.exe",
+                  hash: $hash64
+                },
+                arm64: {
+                  url: "https://github.com/colangelo/HittyPing/releases/download/v\($version)/hp-windows-arm64.exe#/hp.exe",
+                  hash: $hasharm
+                }
+              },
+              bin: "hp.exe",
+              checkver: { github: "https://github.com/colangelo/HittyPing" },
+              autoupdate: {
+                architecture: {
+                  "64bit": { url: "https://github.com/colangelo/HittyPing/releases/download/v$version/hp-windows-amd64.exe#/hp.exe" },
+                  arm64: { url: "https://github.com/colangelo/HittyPing/releases/download/v$version/hp-windows-arm64.exe#/hp.exe" }
+                }
+              }
+            }' > bucket/hp.json
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
