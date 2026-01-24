@@ -55,6 +55,16 @@ go build -o hp .
 
 Download the binary for your platform from [Releases](https://github.com/colangelo/HittyPing/releases).
 
+**Verify download** (optional):
+
+```bash
+cosign verify-blob --signature hp-linux-amd64.sig --certificate hp-linux-amd64.pem \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp 'github.com/colangelo/HittyPing' hp-linux-amd64
+```
+
+See [SECURITY.md](SECURITY.md) for full verification instructions.
+
 ## Usage
 
 ```bash
