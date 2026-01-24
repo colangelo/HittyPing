@@ -13,7 +13,7 @@ Only the latest release is supported with security fixes.
 
 **Please DO NOT open a public issue for security reports.**
 
-Email: security@colangelo.dev
+Use [GitHub Private Vulnerability Reporting](../../security/advisories/new) or email: security@colangelo.dev
 
 Include:
 - Version or commit hash
@@ -38,7 +38,29 @@ You can expect an initial response within 48 hours. If confirmed, a fix will be 
 
 ## Verifying Releases
 
-Each GitHub Release includes a `checksums.txt` file with SHA-256 hashes.
+All release binaries are signed with [Sigstore cosign](https://docs.sigstore.dev/) using GitHub Actions OIDC.
+
+Each release includes:
+- `hp-<os>-<arch>` - the binary
+- `hp-<os>-<arch>.sig` - cosign signature
+- `hp-<os>-<arch>.pem` - signing certificate
+- `checksums.txt` - SHA256 checksums
+- `checksums.txt.sig` / `checksums.txt.pem` - signed checksums
+
+### Verify with cosign (recommended)
+
+```bash
+# Install cosign: https://docs.sigstore.dev/cosign/system_config/installation/
+
+cosign verify-blob \
+  --signature hp-linux-amd64.sig \
+  --certificate hp-linux-amd64.pem \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
+  hp-linux-amd64
+```
+
+### Verify checksums only
 
 ```bash
 # Download the binary and checksums
@@ -50,3 +72,10 @@ sha256sum -c checksums.txt --ignore-missing
 # or on macOS:
 shasum -a 256 -c checksums.txt --ignore-missing
 ```
+
+### Why verify?
+
+Cosign verification ensures:
+1. The binary was built by GitHub Actions (not a compromised maintainer)
+2. The binary hasn't been tampered with since release
+3. You're running exactly what was built from the source code

@@ -17,13 +17,13 @@ jobs:
     name: Analyze (CodeQL)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
         with:
           languages: go
           queries: security-extended
 
-      - uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/autobuild@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
 
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@38e701f46e33fb233075bf4238cb1e5d68e429e4 # v3
