@@ -2,6 +2,23 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.7.6] - 2026-01-24
+
+### Added
+
+- Cosign-signed release binaries for supply-chain verification
+- Release verification documentation in SECURITY.md
+
+### Changed
+
+- Pin all GitHub Actions to commit SHAs (security hardening)
+- Add restrictive `permissions: read-all` to CI workflows
+- Consolidate security docs into reusable template (`docs/github-security-setup.md`)
+
+### Removed
+
+- `docs/security-checklist.md` (merged into `docs/github-security-setup.md`)
+
 ## [0.7.5] - 2026-01-24
 
 ### Added
