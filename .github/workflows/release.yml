@@ -4,9 +4,18 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v0.7.5)'
+        required: true
+        type: string
 
 permissions:
   contents: write
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   test:
@@ -14,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -53,6 +64,8 @@ jobs:
             ext: '.exe'
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -94,6 +107,7 @@ jobs:
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
           files: |
             hp-*
             checksums.txt
@@ -106,8 +120,8 @@ jobs:
     steps:
       - name: Calculate checksums
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          BASE_URL="https://github.com/colangelo/HittyPing/releases/download/${GITHUB_REF_NAME}"
+          VERSION="${RELEASE_TAG#v}"
+          BASE_URL="https://github.com/colangelo/HittyPing/releases/download/${RELEASE_TAG}"
 
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
@@ -189,8 +203,8 @@ FORMULA
     steps:
       - name: Calculate checksums
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          BASE_URL="https://github.com/colangelo/HittyPing/releases/download/${GITHUB_REF_NAME}"
+          VERSION="${RELEASE_TAG#v}"
+          BASE_URL="https://github.com/colangelo/HittyPing/releases/download/${RELEASE_TAG}"
 
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
