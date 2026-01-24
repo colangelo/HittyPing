@@ -60,6 +60,24 @@ cosign verify-blob \
   hp-linux-amd64
 ```
 
+Or download and verify automatically for your platform:
+
+```bash
+OS=$(uname -s | tr '[:upper:]' '[:lower:]') && \
+ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') && \
+BIN="hp-${OS}-${ARCH}" && \
+BASE_URL="https://github.com/colangelo/HittyPing/releases/latest/download" && \
+curl -sLO "${BASE_URL}/${BIN}" && \
+curl -sLO "${BASE_URL}/${BIN}.sig" && \
+curl -sLO "${BASE_URL}/${BIN}.pem" && \
+cosign verify-blob \
+  --signature "${BIN}.sig" \
+  --certificate "${BIN}.pem" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
+  "${BIN}"
+```
+
 ### Verify checksums only
 
 ```bash
