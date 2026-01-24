@@ -50,3 +50,48 @@ ci:
 # Clean build artifacts
 clean:
     rm -f hp
+
+# Download and verify latest release for current platform
+verify-release:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+    ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+    BIN="hp-${OS}-${ARCH}"
+    BASE_URL="https://github.com/colangelo/HittyPing/releases/latest/download"
+    echo "Downloading ${BIN}..."
+    curl -sLO "${BASE_URL}/${BIN}"
+    curl -sLO "${BASE_URL}/${BIN}.sig"
+    curl -sLO "${BASE_URL}/${BIN}.pem"
+    echo "Verifying signature..."
+    cosign verify-blob \
+      --signature "${BIN}.sig" \
+      --certificate "${BIN}.pem" \
+      --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+      --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
+      "${BIN}"
+    echo "Verified! Binary: ${BIN}"
+
+# Verify installed hp binary (from brew/scoop) against release signatures
+verify-installed:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    HP_PATH=$(which hp 2>/dev/null || whence hp 2>/dev/null) || { echo "hp not found in PATH"; exit 1; }
+    VERSION=$(${HP_PATH} --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+    OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+    ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+    BIN="hp-${OS}-${ARCH}"
+    BASE_URL="https://github.com/colangelo/HittyPing/releases/download/v${VERSION}"
+    echo "Found: ${HP_PATH} (v${VERSION})"
+    echo "Downloading signatures for ${BIN}..."
+    curl -sLO "${BASE_URL}/${BIN}.sig"
+    curl -sLO "${BASE_URL}/${BIN}.pem"
+    echo "Verifying..."
+    cosign verify-blob \
+      --signature "${BIN}.sig" \
+      --certificate "${BIN}.pem" \
+      --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+      --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
+      "${HP_PATH}"
+    rm -f "${BIN}.sig" "${BIN}.pem"
+    echo "Verified! ${HP_PATH} matches signed release v${VERSION}"
