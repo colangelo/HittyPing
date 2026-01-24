@@ -10,6 +10,10 @@ on:
         description: 'Tag to release (e.g., v0.7.6)'
         required: true
         type: string
+      release_name:
+        description: 'Custom release title (optional, defaults to tag)'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -119,6 +123,7 @@ jobs:
       - name: Upload Release Assets
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
         with:
+          name: ${{ inputs.release_name || env.RELEASE_TAG }}
           files: |
             hp-*
             checksums.txt
