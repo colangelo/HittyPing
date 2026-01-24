@@ -263,3 +263,4 @@ MANIFEST
           git add bucket/hp.json
           git diff --staged --quiet || git commit -m "Update hp to v${VERSION}"
           git push
+
