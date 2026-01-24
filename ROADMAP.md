@@ -68,6 +68,13 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.7.6 - Signed Releases
+
+- [x] Cosign-signed release binaries (keyless OIDC via GitHub Actions)
+- [x] Pin all GitHub Actions to SHA
+- [x] Add verification docs to SECURITY.md
+- [x] Consolidate security docs into reusable template
+
 ### v0.7.5 - Display Improvements
 
 - [x] Silence quic-go UDP buffer warnings on Linux
