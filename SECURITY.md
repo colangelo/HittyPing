@@ -47,22 +47,13 @@ Each release includes:
 - `checksums.txt` - SHA256 checksums
 - `checksums.txt.sig` / `checksums.txt.pem` - signed checksums
 
-### Verify with cosign (recommended)
+### Option 1: Verify before installing (download from releases)
+
+Use this when downloading directly from GitHub releases instead of using a package manager.
 
 ```bash
-# Install cosign: https://docs.sigstore.dev/cosign/system_config/installation/
+# Requires: cosign (https://docs.sigstore.dev/cosign/system_config/installation/)
 
-cosign verify-blob \
-  --signature hp-linux-amd64.sig \
-  --certificate hp-linux-amd64.pem \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
-  hp-linux-amd64
-```
-
-Or download and verify automatically for your platform:
-
-```bash
 OS=$(uname -s | tr '[:upper:]' '[:lower:]') && \
 ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') && \
 BIN="hp-${OS}-${ARCH}" && \
@@ -78,7 +69,35 @@ cosign verify-blob \
   "${BIN}"
 ```
 
-### Verify checksums only
+Or if you have the repo cloned: `just verify-release`
+
+### Option 2: Verify after installing (Homebrew/Scoop)
+
+Use this to verify that your installed `hp` binary matches the official signed release.
+
+```bash
+# Requires: cosign
+
+HP_PATH=$(which hp) && \
+VERSION=$(${HP_PATH} --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+') && \
+OS=$(uname -s | tr '[:upper:]' '[:lower:]') && \
+ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') && \
+BIN="hp-${OS}-${ARCH}" && \
+BASE_URL="https://github.com/colangelo/HittyPing/releases/download/v${VERSION}" && \
+curl -sLO "${BASE_URL}/${BIN}.sig" && \
+curl -sLO "${BASE_URL}/${BIN}.pem" && \
+cosign verify-blob \
+  --signature "${BIN}.sig" \
+  --certificate "${BIN}.pem" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
+  "${HP_PATH}" && \
+rm -f "${BIN}.sig" "${BIN}.pem"
+```
+
+Or if you have the repo cloned: `just verify-installed`
+
+### Verify checksums only (no cosign)
 
 ```bash
 # Download the binary and checksums
