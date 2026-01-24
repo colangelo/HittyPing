@@ -90,3 +90,32 @@ Legend: ▁▂▃<150ms ▄▅<400ms ▆▇█>=400ms !fail
 - Yellow (▄▅): < yellow threshold
 - Red (▆▇█): >= yellow threshold
 - Red bold (!): Failed request
+
+## Git Workflow
+
+**Branch protection is enabled on `main`.** Direct pushes are blocked.
+
+### Making changes to main
+
+1. Create a feature branch: `git checkout -b fix/description`
+2. Make changes and commit
+3. Push branch: `git push origin fix/description`
+4. Create PR: `gh pr create --base main`
+5. Wait for CI (lint, test, CodeQL) to pass
+6. Merge PR: `gh pr merge --merge --delete-branch`
+
+### Releasing a new version
+
+1. Update `const version` in `main.go`
+2. Update `CHANGELOG.md` and `ROADMAP.md`
+3. Merge changes to main via PR
+4. Create and push tag: `git tag -a vX.Y.Z -m "message" && git push origin vX.Y.Z`
+5. Tag push triggers release workflow (builds, signs with cosign, updates Homebrew/Scoop)
+6. Optionally set custom title: `gh release edit vX.Y.Z --title "vX.Y.Z - Title"`
+
+### CI Requirements
+
+PRs to main require:
+- `lint` - golangci-lint
+- `test` - go test
+- `CodeQL` - security scanning
