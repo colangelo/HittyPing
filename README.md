@@ -114,8 +114,9 @@ Block height scales within each color zone based on latency.
 
 ## Platform Support
 
-Developed and tested on macOS.
-Linux and Windows builds are provided but not actively tested.
+Developed on macOS. Tested on Windows and Linux.
+
+<img src="img/tested-on-windows-linux.png" alt="hp running on Windows 11 and Ubuntu Linux" width="720">
 
 ## Roadmap
 
