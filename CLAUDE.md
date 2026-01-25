@@ -39,6 +39,7 @@ hp                                    # Default: https://1.1.1.1
 hp dns.nextdns.io                     # Custom target (https:// auto-added)
 hp -c 10 dns.nextdns.io               # Send 10 requests then exit
 hp -i 500ms dns.nextdns.io            # 500ms interval (or --interval)
+hp -j 200ms cloudflare.com            # Add up to 200ms random jitter to interval
 hp -t 3s cloudflare.com               # 3 second timeout (or --timeout)
 hp -q dns.nextdns.io                  # Quiet mode (hide header and legend)
 hp -Q dns.nextdns.io                  # Silent mode (pure bar output)
@@ -57,6 +58,7 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 |-------|------|---------|---------|-------------|
 | `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
+| `-j` | `--jitter` | | 0 | Max random jitter to add to interval |
 | `-t` | `--timeout` | | 5s | Request timeout |
 | | `--legend` | | false | Show legend line |
 | | `--noheader` | | false | Hide header line |

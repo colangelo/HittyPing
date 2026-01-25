@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -16,7 +17,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const version = "0.7.8"
+const version = "0.7.9"
 
 const (
 	// ANSI colors
@@ -85,6 +86,7 @@ func main() {
 	log.SetOutput(io.Discard)
 
 	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
+	jitter := flag.DurationP("jitter", "j", 0, "max random jitter to add to interval")
 	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
 	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
 	showLegend := flag.Bool("legend", false, "show the legend line")
@@ -303,7 +305,11 @@ func main() {
 			}
 			os.Exit(0)
 		}
-		time.Sleep(*interval)
+		sleepDuration := *interval
+		if *jitter > 0 {
+			sleepDuration += time.Duration(rand.Int63n(int64(*jitter)))
+		}
+		time.Sleep(sleepDuration)
 	}
 }
 
