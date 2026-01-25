@@ -2,6 +2,14 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.8.0] - 2026-01-25
+
+### Added
+
+- `-b/--braille` flag for braille character visualization (2x density)
+  - Packs 2 readings per character using braille dot patterns
+  - Shows more history in the same terminal width
+
 ## [0.7.9] - 2026-01-25
 
 ### Added
