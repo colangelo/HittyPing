@@ -89,6 +89,7 @@ hp -2 cloudflare.com            # Force HTTP/2 (fail if not negotiated)
 hp -3 dns.google                # HTTP/3 (QUIC)
 hp -3 -d example.com            # HTTP/3 with auto-downgrade on failures
 hp -3 -D example.com            # Auto-downgrade including plain HTTP
+hp -b cloudflare.com            # Braille mode (2x density)
 hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 ```
 
@@ -98,8 +99,9 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 |------|------|---------|---------|-------------|
 | `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
-| `-j` | `--jitter` | | 0 | Max random jitter to add to interval |
+| `-j` | `--jitter` | | 0 | Max random jitter to add to interval (e.g., 200ms, 3s) |
 | `-t` | `--timeout` | | 5s | Request timeout |
+| `-b` | `--braille` | | false | Use braille characters (2x density) |
 | | `--legend` | | false | Show legend (hidden by default) |
 | | `--noheader` | | false | Hide header line |
 | `-q` | `--quiet` | | false | Hide header and legend |
