@@ -406,7 +406,8 @@ func getURLForProto(host string, protoLevel int) string {
 	return "https://" + host
 }
 
-// getBrailleHeight returns a height level (0-4) for braille rendering
+// getBrailleHeight returns a height level (1-4) for braille rendering
+// Minimum is 1 to ensure at least one dot is always visible
 func getBrailleHeight(rtt time.Duration) int {
 	if rtt < 0 {
 		return -1 // failure
@@ -414,27 +415,19 @@ func getBrailleHeight(rtt time.Duration) int {
 	ms := rtt.Milliseconds()
 
 	if ms < greenThreshold {
-		// Green zone: heights 0-1
-		if ms <= minLatency {
-			return 0
-		}
+		// Green zone: heights 1-2
 		progress := ms - minLatency
 		span := greenThreshold - minLatency
 		if span > 0 && progress > span/2 {
-			return 1
+			return 2
 		}
-		return 0
+		return 1
 	} else if ms < yellowThreshold {
-		// Yellow zone: height 2
-		return 2
-	} else {
-		// Red zone: heights 3-4
-		progress := ms - yellowThreshold
-		span := yellowThreshold
-		if span > 0 && progress > span/2 {
-			return 4
-		}
+		// Yellow zone: height 3
 		return 3
+	} else {
+		// Red zone: height 4
+		return 4
 	}
 }
 
