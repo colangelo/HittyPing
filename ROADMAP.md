@@ -74,6 +74,11 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.7.8 - Container Publishing
+
+- [x] Docker container image on GHCR (ghcr.io/colangelo/hp)
+- [x] Release procedure documentation
+
 ### v0.7.7 - Display Mode Flags
 
 - [x] `--legend` to show legend (legend now hidden by default)

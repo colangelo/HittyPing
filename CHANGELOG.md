@@ -2,11 +2,12 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
-## [Unreleased]
+## [0.7.8] - 2026-01-25
 
 ### Added
 
 - Docker container image published to GitHub Container Registry (ghcr.io/colangelo/hp)
+- Release procedure documentation (docs/release-procedure.md)
 
 ## [0.7.7] - 2026-01-25
 
