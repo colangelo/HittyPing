@@ -1,12 +1,26 @@
-# Release Procedure
+# Release Protocol
 
-Complete guide for releasing a new version of hp.
+**Mandatory steps for releasing a new version of hp.**
 
 ## Prerequisites
 
 - On the `dev` branch with all changes committed
 - `gh` CLI authenticated (`command gh auth status`)
 - Write access to the repository
+
+## Branch Documentation Strategy
+
+The `dev` and `main` branches have different documentation:
+
+| File | `dev` | `main` |
+|------|-------|--------|
+| `CLAUDE.md` | Full developer instructions | Full developer instructions |
+| `README.md` | May have dev notes | Public-facing, polished |
+| `CHANGELOG.md` | May have `[Unreleased]` section | Released versions only |
+| `ROADMAP.md` | Full roadmap with ideas | Full roadmap |
+| `docs/` | All docs including internal | All docs |
+
+**Key principle**: `main` is what users see on GitHub. Keep it clean and public-facing.
 
 ## Release Steps
 
@@ -25,13 +39,25 @@ just bump major   # 0.7.7 → 1.0.0
 
 ### 2. Update Documentation
 
+**All documentation must be updated before release.**
+
 Update `CHANGELOG.md`:
 - Change `[Unreleased]` to `[X.Y.Z] - YYYY-MM-DD`
-- Add new `[Unreleased]` section at top (if there will be more changes)
+- Ensure all changes are documented under correct categories (Added, Changed, Fixed, etc.)
 
 Update `ROADMAP.md`:
-- Move completed items from "Ideas" to "Completed" section
-- Add version header to completed section
+- Move completed items from "Ideas/Planned" to "Completed" section
+- Add version header with brief description (e.g., `### v0.7.8 - Container Publishing`)
+
+Update `CLAUDE.md`:
+- Update flags table if CLI options changed
+- Update usage examples if behavior changed
+- Update any outdated instructions
+
+Update `README.md`:
+- Update flags table to match current CLI
+- Update usage examples
+- Add new installation methods if applicable (e.g., Docker)
 
 ### 3. Commit Release Preparation
 
@@ -195,3 +221,6 @@ git tag -d vX.Y.Z
 - **Always merge dev → main via PR** - never push directly to main
 - **Use `command gh`** - to avoid shell aliases interfering with gh CLI
 - **Cosign signing is automatic** - uses OIDC/keyless signing via GitHub Actions
+- **Update ALL docs before release** - CHANGELOG, ROADMAP, CLAUDE.md, README.md
+- **Review docs for public consumption** - main branch is what users see on GitHub
+- **See CLAUDE.md for full details** - development instructions, architecture, flags reference
