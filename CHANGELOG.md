@@ -2,6 +2,19 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.7.7] - 2026-01-25
+
+### Added
+
+- `--noheader` flag to hide header line
+- `-q/--quiet` flag to hide header and legend
+- `-Q/--silent` flag to hide header, legend, and final stats (pure bar output)
+
+### Changed
+
+- **Breaking**: `-q` now means `--quiet` (hide header + legend), not `--nolegend`
+- **Breaking**: Legend hidden by default; use `--legend` to show it (replaces `--nolegend`)
+
 ## [0.7.6] - 2026-01-24
 
 ### Added

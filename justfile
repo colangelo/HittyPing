@@ -72,6 +72,22 @@ verify-release:
       "${BIN}"
     echo "Verified! Binary: ${BIN}"
 
+# Bump version (major, minor, or patch)
+bump PART="patch":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    CURRENT=$(grep 'const version = ' main.go | sed 's/.*"\(.*\)".*/\1/')
+    IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+    case "{{PART}}" in
+        major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+        minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+        patch) PATCH=$((PATCH + 1)) ;;
+        *) echo "Usage: just bump [major|minor|patch]"; exit 1 ;;
+    esac
+    NEW="${MAJOR}.${MINOR}.${PATCH}"
+    sed -i '' "s/const version = \"$CURRENT\"/const version = \"$NEW\"/" main.go
+    echo "Bumped version: $CURRENT → $NEW"
+
 # Verify installed hp binary (from brew/scoop) against release signatures
 verify-installed:
     #!/usr/bin/env bash
