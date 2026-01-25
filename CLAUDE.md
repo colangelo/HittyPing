@@ -99,6 +99,8 @@ Legend: ▁▂▃<150ms ▄▅<400ms ▆▇█>=400ms !fail
 
 **Branch protection is enabled on `main`.** Direct pushes are blocked.
 
+**IMPORTANT: Never delete the `dev` branch.** It is the main development branch.
+
 ### Making changes to main
 
 1. Create a feature branch: `git checkout -b fix/description`
@@ -106,16 +108,17 @@ Legend: ▁▂▃<150ms ▄▅<400ms ▆▇█>=400ms !fail
 3. Push branch: `git push origin fix/description`
 4. Create PR: `gh pr create --base main`
 5. Wait for CI (lint, test, CodeQL) to pass
-6. Merge PR: `gh pr merge --merge --delete-branch`
+6. Merge PR: `gh pr merge --merge --delete-branch` (OK to delete feature branches)
 
 ### Releasing a new version
 
-1. Update `const version` in `main.go`
+1. Update `const version` in `main.go` (use `just bump [major|minor|patch]`)
 2. Update `CHANGELOG.md` and `ROADMAP.md`
-3. Merge changes to main via PR
-4. Create and push tag: `git tag -a vX.Y.Z -m "message" && git push origin vX.Y.Z`
-5. Tag push triggers release workflow (builds, signs with cosign, updates Homebrew/Scoop)
-6. Optionally set custom title: `gh release edit vX.Y.Z --title "vX.Y.Z - Title"`
+3. Merge dev to main via PR: `gh pr create --base main --head dev`
+4. Merge PR: `gh pr merge --merge` (**DO NOT use --delete-branch for dev**)
+5. Checkout main, pull, create and push tag: `git tag -a vX.Y.Z -m "message" && git push origin vX.Y.Z`
+6. Tag push triggers release workflow (builds, signs with cosign, updates Homebrew/Scoop)
+7. Optionally set custom title: `gh release edit vX.Y.Z --title "vX.Y.Z - Title"`
 
 ### CI Requirements
 
