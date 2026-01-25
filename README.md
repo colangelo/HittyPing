@@ -98,7 +98,7 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 |------|------|---------|---------|-------------|
 | `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
-| `-j` | `--jitter` | | 0 | Max random jitter to add to interval |
+| `-j` | `--jitter` | | 0 | Max random jitter to add to interval (e.g., 200ms, 3s) |
 | `-t` | `--timeout` | | 5s | Request timeout |
 | | `--legend` | | false | Show legend (hidden by default) |
 | | `--noheader` | | false | Hide header line |

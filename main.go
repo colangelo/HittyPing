@@ -86,7 +86,7 @@ func main() {
 	log.SetOutput(io.Discard)
 
 	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
-	jitter := flag.DurationP("jitter", "j", 0, "max random jitter to add to interval")
+	jitter := flag.DurationP("jitter", "j", 0, "max random jitter to add to interval (e.g., 200ms, 3s)")
 	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
 	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
 	showLegend := flag.Bool("legend", false, "show the legend line")

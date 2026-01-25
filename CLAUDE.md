@@ -58,7 +58,7 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 |-------|------|---------|---------|-------------|
 | `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
-| `-j` | `--jitter` | | 0 | Max random jitter to add to interval |
+| `-j` | `--jitter` | | 0 | Max random jitter to add to interval (e.g., 200ms, 3s) |
 | `-t` | `--timeout` | | 5s | Request timeout |
 | | `--legend` | | false | Show legend line |
 | | `--noheader` | | false | Hide header line |
