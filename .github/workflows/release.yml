@@ -15,10 +15,7 @@ on:
         required: false
         type: string
 
-permissions:
-  contents: write
-  packages: write  # For GHCR container publishing
-  id-token: write  # For cosign OIDC signing
+permissions: read-all
 
 env:
   RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
@@ -27,6 +24,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -47,6 +46,8 @@ jobs:
     name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         include:
@@ -97,6 +98,9 @@ jobs:
     name: Create Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -136,6 +140,8 @@ jobs:
     name: Update Homebrew Formula
     needs: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     env:
       # Base64-encoded Homebrew formula template (avoids YAML parsing issues)
       FORMULA_TEMPLATE: Y2xhc3MgSHAgPCBGb3JtdWxhCiAgZGVzYyAiUHJldHR5cGluZy1zdHlsZSBIVFRQKFMpIGxhdGVuY3kgbW9uaXRvciIKICBob21lcGFnZSAiaHR0cHM6Ly9naXRodWIuY29tL2NvbGFuZ2Vsby9IaXR0eVBpbmciCiAgdmVyc2lvbiAiVkVSU0lPTl9QTEFDRUhPTERFUiIKICBsaWNlbnNlICJNSVQiCgogIG9uX21hY29zIGRvCiAgICBpZiBIYXJkd2FyZTo6Q1BVLmFybT8KICAgICAgdXJsICJodHRwczovL2dpdGh1Yi5jb20vY29sYW5nZWxvL0hpdHR5UGluZy9yZWxlYXNlcy9kb3dubG9hZC92I3t2ZXJzaW9ufS9ocC1kYXJ3aW4tYXJtNjQiCiAgICAgIHNoYTI1NiAiREFSV0lOX0FSTTY0X1BMQUNFSE9MREVSIgogICAgZWxzZQogICAgICB1cmwgImh0dHBzOi8vZ2l0aHViLmNvbS9jb2xhbmdlbG8vSGl0dHlQaW5nL3JlbGVhc2VzL2Rvd25sb2FkL3Yje3ZlcnNpb259L2hwLWRhcndpbi1hbWQ2NCIKICAgICAgc2hhMjU2ICJEQVJXSU5fQU1ENjRfUExBQ0VIT0xERVIiCiAgICBlbmQKICBlbmQKCiAgb25fbGludXggZG8KICAgIGlmIEhhcmR3YXJlOjpDUFUuYXJtPwogICAgICB1cmwgImh0dHBzOi8vZ2l0aHViLmNvbS9jb2xhbmdlbG8vSGl0dHlQaW5nL3JlbGVhc2VzL2Rvd25sb2FkL3Yje3ZlcnNpb259L2hwLWxpbnV4LWFybTY0IgogICAgICBzaGEyNTYgIkxJTlVYX0FSTTY0X1BMQUNFSE9MREVSIgogICAgZWxzZQogICAgICB1cmwgImh0dHBzOi8vZ2l0aHViLmNvbS9jb2xhbmdlbG8vSGl0dHlQaW5nL3JlbGVhc2VzL2Rvd25sb2FkL3Yje3ZlcnNpb259L2hwLWxpbnV4LWFtZDY0IgogICAgICBzaGEyNTYgIkxJTlVYX0FNRDY0X1BMQUNFSE9MREVSIgogICAgZW5kCiAgZW5kCgogIGRlZiBpbnN0YWxsCiAgICBiaW5hcnkgPSBEaXJbImhwLSoiXS5maXJzdCB8fCAiaHAiCiAgICBiaW4uaW5zdGFsbCBiaW5hcnkgPT4gImhwIgogIGVuZAoKICB0ZXN0IGRvCiAgICBhc3NlcnRfbWF0Y2ggImhwIChoaXR0eXBpbmcpIiwgc2hlbGxfb3V0cHV0KCIje2Jpbn0vaHAgLS12ZXJzaW9uIikKICBlbmQKZW5kCg==
@@ -177,6 +183,8 @@ jobs:
     name: Update Scoop Manifest
     needs: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Calculate checksums
         run: |
@@ -237,6 +245,9 @@ jobs:
     name: Publish Container Image
     needs: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
