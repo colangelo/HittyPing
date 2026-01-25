@@ -36,11 +36,11 @@ cloudflare.com [104.16.132.229]
 
 ### Near-term Enhancements
 
-- [ ] Display mode flags (breaking: reorganizes `-q`):
-  - [ ] `--nolegend` to hide legend (replaces `-q/--nolegend`, no short flag)
-  - [ ] `--noheader` to hide header line
-  - [ ] `-q/--quiet` to hide header + legend (new meaning for `-q`)
-  - [ ] `-Q/--silent` to hide header + legend + final stats (pure bar output)
+- [x] Display mode flags (breaking: reorganizes `-q`):
+  - [x] `--nolegend` to hide legend (replaces `-q/--nolegend`, no short flag)
+  - [x] `--noheader` to hide header line
+  - [x] `-q/--quiet` to hide header + legend (new meaning for `-q`)
+  - [x] `-Q/--silent` to hide header + legend + final stats (pure bar output)
   - [ ] `--braille` for braille character visualization (like btop, higher density)
 - [ ] `-j/--jitter` flag to add random variation to interval (anti-fingerprinting)
 - [ ] DNS resolution timing breakdown (separate from HTTP RTT)

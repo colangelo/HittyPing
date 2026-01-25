@@ -87,7 +87,10 @@ func main() {
 	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
 	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
 	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
-	noLegend := flag.BoolP("nolegend", "q", false, "hide the legend line")
+	noLegend := flag.Bool("nolegend", false, "hide the legend line")
+	noHeader := flag.Bool("noheader", false, "hide the header line")
+	quiet := flag.BoolP("quiet", "q", false, "hide header and legend")
+	silent := flag.BoolP("silent", "Q", false, "hide header, legend, and final stats")
 	minFlag := flag.Int64P("min", "m", 0, "min latency baseline in ms (env: HP_MIN)")
 	greenFlag := flag.Int64P("green", "g", 0, "green threshold in ms (env: HP_GREEN)")
 	yellowFlag := flag.Int64P("yellow", "y", 0, "yellow threshold in ms (env: HP_YELLOW)")
@@ -160,7 +163,9 @@ func main() {
 	signal.Notify(sigCh, os.Interrupt)
 	go func() {
 		<-sigCh
-		printFinal(displayURL, s)
+		if !*silent {
+			printFinal(displayURL, s)
+		}
 		os.Exit(0)
 	}()
 
@@ -207,8 +212,10 @@ func main() {
 			fmt.Printf("%sHittyPing (v%s) %s%s %s(%s)%s\n", gray, version, reset+bold, displayURL, reset+gray, protoNames[currentProto], reset)
 		}
 	}
-	printHeader()
-	if !*noLegend {
+	if !*noHeader && !*quiet && !*silent {
+		printHeader()
+	}
+	if !*noLegend && !*quiet && !*silent {
 		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
 			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
 	}
@@ -264,10 +271,12 @@ func main() {
 
 					// Print downgrade message and update header
 					printDisplay(s)
-					fmt.Printf("\n%s↓ Downgrading to %s (3 initial failures)%s\n", yellow, protoNames[currentProto], reset)
-					printHeader()
-					fmt.Println() // Reserve stats line
-					fmt.Print(up) // Move back to bar line
+					if !*noHeader && !*quiet && !*silent {
+						fmt.Printf("\n%s↓ Downgrading to %s (3 initial failures)%s\n", yellow, protoNames[currentProto], reset)
+						printHeader()
+						fmt.Println() // Reserve stats line
+						fmt.Print(up) // Move back to bar line
+					}
 
 					// Skip to next iteration - don't double-print or wait
 					continue
@@ -289,7 +298,9 @@ func main() {
 		printDisplay(s)
 		requestNum++
 		if *count > 0 && requestNum >= *count {
-			printFinal(displayURL, s)
+			if !*silent {
+				printFinal(displayURL, s)
+			}
 			os.Exit(0)
 		}
 		time.Sleep(*interval)

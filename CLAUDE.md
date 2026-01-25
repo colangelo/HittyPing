@@ -34,7 +34,8 @@ hp dns.nextdns.io                     # Custom target (https:// auto-added)
 hp -c 10 dns.nextdns.io               # Send 10 requests then exit
 hp -i 500ms dns.nextdns.io            # 500ms interval (or --interval)
 hp -t 3s cloudflare.com               # 3 second timeout (or --timeout)
-hp -q dns.nextdns.io                  # Quiet mode (hide legend)
+hp -q dns.nextdns.io                  # Quiet mode (hide header and legend)
+hp -Q dns.nextdns.io                  # Silent mode (pure bar output)
 hp -k https://self-signed.example     # Skip TLS verification (or --insecure)
 hp -1 example.com                     # Use plain HTTP/1.1 (or --http)
 hp -2 cloudflare.com                  # Force HTTP/2 (or --http2)
@@ -51,7 +52,10 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 | `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
 | `-t` | `--timeout` | | 5s | Request timeout |
-| `-q` | `--nolegend` | | false | Quiet mode (hide legend) |
+| | `--nolegend` | | false | Hide legend line |
+| | `--noheader` | | false | Hide header line |
+| `-q` | `--quiet` | | false | Hide header and legend |
+| `-Q` | `--silent` | | false | Hide header, legend, and final stats |
 | `-m` | `--min` | `HP_MIN` | 0 | Min latency baseline (ms) |
 | `-g` | `--green` | `HP_GREEN` | 150 | Green threshold (ms) |
 | `-y` | `--yellow` | `HP_YELLOW` | 400 | Yellow threshold (ms) |
