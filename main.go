@@ -101,7 +101,7 @@ func main() {
 	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
 	showLegend := flag.Bool("legend", false, "show the legend line")
 	noHeader := flag.Bool("noheader", false, "hide the header line")
-	useBraille := flag.BoolP("braille", "b", false, "use braille characters (2x density)")
+	useBraille := flag.BoolP("braille", "b", false, "use braille visualization (2x density)")
 	quiet := flag.BoolP("quiet", "q", false, "hide header and legend")
 	silent := flag.BoolP("silent", "Q", false, "hide header, legend, and final stats")
 	minFlag := flag.Int64P("min", "m", 0, "min latency baseline in ms (env: HP_MIN)")
