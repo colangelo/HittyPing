@@ -26,6 +26,12 @@ Or directly with Go:
 go build -o hp .
 ```
 
+Or with Docker:
+
+```bash
+docker run --rm ghcr.io/colangelo/hp cloudflare.com
+```
+
 ## Usage
 
 ```bash

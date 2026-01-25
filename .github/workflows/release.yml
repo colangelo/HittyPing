@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  packages: write  # For GHCR container publishing
   id-token: write  # For cosign OIDC signing
 
 env:
@@ -231,3 +232,28 @@ jobs:
           git add bucket/hp.json
           git diff --staged --quiet || git commit -m "Update hp to v${VERSION}"
           git push
+
+  publish-container:
+    name: Publish Container Image
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/hp:${{ env.RELEASE_TAG }}
+            ghcr.io/${{ github.repository_owner }}/hp:latest
