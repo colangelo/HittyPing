@@ -38,6 +38,12 @@ const (
 // Unicode block characters for visualization
 var blocks = []string{"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"}
 
+// Braille dot patterns for left column (dots 1,2,3,7) - 5 height levels (0-4)
+var brailleLeft = []rune{0x00, 0x40, 0x44, 0x46, 0x47}
+
+// Braille dot patterns for right column (dots 4,5,6,8) - 5 height levels (0-4)
+var brailleRight = []rune{0x00, 0x80, 0xA0, 0xB0, 0xB8}
+
 // Protocol levels for downgrade feature
 const (
 	protoHTTP1 = 0 // Plain HTTP/1.1 (insecure)
@@ -71,14 +77,18 @@ func getEnvInt(key string, def int64) int64 {
 }
 
 type stats struct {
-	count    int
-	failures int
-	total    time.Duration
-	min      time.Duration
-	max      time.Duration
-	last     time.Duration
-	blocks   []string // individual blocks for proper width handling
-	col      int      // current column position on bar line
+	count        int
+	failures     int
+	total        time.Duration
+	min          time.Duration
+	max          time.Duration
+	last         time.Duration
+	blocks       []string      // individual blocks for proper width handling
+	col          int           // current column position on bar line
+	lastPrinted  int           // last block index printed
+	braille      bool          // braille mode enabled
+	pendingRTT   time.Duration // pending RTT for braille pairing (-1 = failure, 0 = none)
+	hasPending   bool          // whether there's a pending RTT
 }
 
 func main() {
@@ -91,6 +101,7 @@ func main() {
 	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
 	showLegend := flag.Bool("legend", false, "show the legend line")
 	noHeader := flag.Bool("noheader", false, "hide the header line")
+	useBraille := flag.BoolP("braille", "b", false, "use braille characters (2x density)")
 	quiet := flag.BoolP("quiet", "q", false, "hide header and legend")
 	silent := flag.BoolP("silent", "Q", false, "hide header, legend, and final stats")
 	minFlag := flag.Int64P("min", "m", 0, "min latency baseline in ms (env: HP_MIN)")
@@ -158,7 +169,7 @@ func main() {
 		}
 	}
 
-	s := &stats{min: time.Hour}
+	s := &stats{min: time.Hour, braille: *useBraille}
 
 	// Handle Ctrl+C
 	sigCh := make(chan os.Signal, 1)
@@ -218,8 +229,13 @@ func main() {
 		printHeader()
 	}
 	if *showLegend && !*quiet && !*silent {
-		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
-			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
+		if *useBraille {
+			fmt.Printf("%sLegend: %s⡀⡄%s<%dms %s⡆%s<%dms %s⡇%s>=%dms %s%s!%sfail %s(2x density)%s\n",
+				gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, gray, reset)
+		} else {
+			fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
+				gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
+		}
 	}
 	fmt.Println() // Reserve stats line
 	fmt.Print(up) // Move back to bar line
@@ -235,7 +251,19 @@ func main() {
 		if err != nil {
 			s.failures++
 			consecutiveFailures++
-			s.blocks = append(s.blocks, red+bold+"!"+reset)
+			if s.braille {
+				if s.hasPending {
+					// Pair with pending: pending=left, failure=right
+					s.blocks = append(s.blocks, getBrailleChar(s.pendingRTT, -1))
+					s.hasPending = false
+				} else {
+					// Store failure as pending
+					s.pendingRTT = -1
+					s.hasPending = true
+				}
+			} else {
+				s.blocks = append(s.blocks, red+bold+"!"+reset)
+			}
 
 			// Check for downgrade (only at startup, before first successful ping)
 			if canDowngrade && consecutiveFailures >= 3 && currentProto > minProto && s.count == 0 {
@@ -295,7 +323,19 @@ func main() {
 			if rtt > s.max {
 				s.max = rtt
 			}
-			s.blocks = append(s.blocks, getBlock(rtt))
+			if s.braille {
+				if s.hasPending {
+					// Pair with pending: pending=left, current=right
+					s.blocks = append(s.blocks, getBrailleChar(s.pendingRTT, rtt))
+					s.hasPending = false
+				} else {
+					// Store as pending
+					s.pendingRTT = rtt
+					s.hasPending = true
+				}
+			} else {
+				s.blocks = append(s.blocks, getBlock(rtt))
+			}
 		}
 		printDisplay(s)
 		requestNum++
@@ -364,6 +404,82 @@ func getURLForProto(host string, protoLevel int) string {
 		return "http://" + host
 	}
 	return "https://" + host
+}
+
+// getBrailleHeight returns a height level (0-4) for braille rendering
+func getBrailleHeight(rtt time.Duration) int {
+	if rtt < 0 {
+		return -1 // failure
+	}
+	ms := rtt.Milliseconds()
+
+	if ms < greenThreshold {
+		// Green zone: heights 0-1
+		if ms <= minLatency {
+			return 0
+		}
+		progress := ms - minLatency
+		span := greenThreshold - minLatency
+		if span > 0 && progress > span/2 {
+			return 1
+		}
+		return 0
+	} else if ms < yellowThreshold {
+		// Yellow zone: height 2
+		return 2
+	} else {
+		// Red zone: heights 3-4
+		progress := ms - yellowThreshold
+		span := yellowThreshold
+		if span > 0 && progress > span/2 {
+			return 4
+		}
+		return 3
+	}
+}
+
+// getColorForRTT returns the ANSI color for a given RTT
+func getColorForRTT(rtt time.Duration) string {
+	if rtt < 0 {
+		return red + bold
+	}
+	ms := rtt.Milliseconds()
+	if ms < greenThreshold {
+		return green
+	} else if ms < yellowThreshold {
+		return yellow
+	}
+	return red
+}
+
+// getBrailleChar returns a braille character combining two RTT values
+// leftRTT is the first (older) reading, rightRTT is the second (newer)
+// Returns the character with appropriate color
+func getBrailleChar(leftRTT, rightRTT time.Duration) string {
+	leftHeight := getBrailleHeight(leftRTT)
+	rightHeight := getBrailleHeight(rightRTT)
+
+	// Handle failures
+	if leftHeight < 0 && rightHeight < 0 {
+		return red + bold + "!" + reset
+	}
+	if leftHeight < 0 {
+		leftHeight = 0
+	}
+	if rightHeight < 0 {
+		rightHeight = 0
+	}
+
+	// Build braille character
+	char := rune(0x2800) + brailleLeft[leftHeight] + brailleRight[rightHeight]
+
+	// Color based on worse (higher) latency
+	color := getColorForRTT(leftRTT)
+	if rightRTT > leftRTT {
+		color = getColorForRTT(rightRTT)
+	}
+
+	return color + string(char) + reset
 }
 
 func getBlock(rtt time.Duration) string {
@@ -442,17 +558,18 @@ func printDisplay(s *stats) {
 
 	width := getTermWidth()
 
-	// Print just the latest block (incremental)
-	if len(s.blocks) > 0 {
-		fmt.Print(s.blocks[len(s.blocks)-1])
+	// Print new blocks since last print (incremental)
+	for s.lastPrinted < len(s.blocks) {
+		fmt.Print(s.blocks[s.lastPrinted])
 		s.col++
-	}
+		s.lastPrinted++
 
-	// Check if we need to wrap to next line for the NEXT block
-	if s.col >= width-1 {
-		// Move to stats line, print newline to scroll, move back up, clear line
-		fmt.Print(down + "\n" + up + col0 + clearLn)
-		s.col = 0
+		// Check if we need to wrap to next line for the NEXT block
+		if s.col >= width-1 {
+			// Move to stats line, print newline to scroll, move back up, clear line
+			fmt.Print(down + "\n" + up + col0 + clearLn)
+			s.col = 0
+		}
 	}
 
 	// Save cursor, print stats below, restore cursor
