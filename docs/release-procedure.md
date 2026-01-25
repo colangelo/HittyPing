@@ -47,9 +47,12 @@ git push origin dev
 # Create PR from dev to main
 command gh pr create --base main --head dev --title "vX.Y.Z - Description"
 
-# Wait for CI checks to pass, then merge
-# IMPORTANT: Do NOT delete dev branch
-command gh pr merge --merge
+# Wait for CI checks to pass (lint, test, CodeQL)
+command gh pr checks <PR-NUMBER> --watch
+
+# Merge the PR
+# IMPORTANT: Do NOT use --delete-branch (preserves dev)
+command gh pr merge <PR-NUMBER> --merge
 ```
 
 ### 5. Create and Push Tag
@@ -69,11 +72,14 @@ git push origin vX.Y.Z
 ### 6. Monitor Release Workflow
 
 ```bash
-# Watch the release workflow
-command gh run watch
-
-# Or check latest runs
+# List recent runs to find the release workflow
 command gh run list --limit 3
+
+# Watch the release workflow (get run ID from above)
+command gh run watch <RUN-ID>
+
+# Or check status
+command gh run view <RUN-ID> --json status,conclusion
 ```
 
 The release workflow will:
@@ -91,8 +97,11 @@ The release workflow will:
 # View the release
 command gh release view vX.Y.Z
 
-# Check container image
-docker pull ghcr.io/colangelo/hp:vX.Y.Z
+# Check container image exists
+docker manifest inspect ghcr.io/colangelo/hp:vX.Y.Z
+
+# Or pull and test it
+docker run --rm ghcr.io/colangelo/hp:vX.Y.Z --version
 ```
 
 ### 8. Post-Release
