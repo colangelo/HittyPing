@@ -42,7 +42,7 @@ cloudflare.com [104.16.132.229]
   - [x] `-q/--quiet` to hide header + legend (new meaning for `-q`)
   - [x] `-Q/--silent` to hide header + legend + final stats (pure bar output)
   - [ ] `--braille` for braille character visualization (like btop, higher density)
-- [ ] `-j/--jitter` flag to add random variation to interval (anti-fingerprinting)
+- [x] `-j/--jitter` flag to add random variation to interval (anti-fingerprinting)
 - [ ] DNS resolution timing breakdown (separate from HTTP RTT)
 - [ ] TCP connection timing vs TLS handshake vs HTTP response
 - [ ] JSON output mode for scripting
@@ -73,6 +73,12 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 ---
 
 ## Completed
+
+### v0.7.9 - Jitter & Security Hardening
+
+- [x] `-j/--jitter` flag for random interval variation (anti-fingerprinting)
+- [x] Pin Docker base images by SHA256 hash
+- [x] Job-level workflow permissions (least privilege)
 
 ### v0.7.8 - Container Publishing
 

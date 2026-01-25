@@ -2,6 +2,17 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.7.9] - 2026-01-25
+
+### Added
+
+- `-j/--jitter` flag to add random variation to request interval (anti-fingerprinting)
+
+### Security
+
+- Pin Docker base images by SHA256 hash (supply chain security)
+- Move workflow permissions to job level (least privilege)
+
 ## [0.7.8] - 2026-01-25
 
 ### Added

@@ -78,6 +78,7 @@ hp                              # Default: https://1.1.1.1
 hp dns.google                   # Custom target (https:// auto-added)
 hp -c 10 cloudflare.com         # Send 10 requests then exit
 hp -i 500ms dns.google          # 500ms interval
+hp -j 200ms cloudflare.com      # Add up to 200ms random jitter
 hp -t 3s cloudflare.com         # 3 second timeout
 hp --legend dns.google          # Show legend (hidden by default)
 hp -q dns.google                # Quiet mode (hide header + legend)
@@ -97,6 +98,7 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 |------|------|---------|---------|-------------|
 | `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
+| `-j` | `--jitter` | | 0 | Max random jitter to add to interval |
 | `-t` | `--timeout` | | 5s | Request timeout |
 | | `--legend` | | false | Show legend (hidden by default) |
 | | `--noheader` | | false | Hide header line |
