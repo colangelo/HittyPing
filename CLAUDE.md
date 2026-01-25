@@ -118,13 +118,14 @@ Legend: ▁▂▃<150ms ▄▅<400ms ▆▇█>=400ms !fail
 
 ### Releasing a new version
 
-1. Update `const version` in `main.go` (use `just bump [major|minor|patch]`)
-2. Update `CHANGELOG.md` and `ROADMAP.md`
-3. Merge dev to main via PR: `gh pr create --base main --head dev`
-4. Merge PR: `gh pr merge --merge` (**DO NOT use --delete-branch for dev**)
-5. Checkout main, pull, create and push tag: `git tag -a vX.Y.Z -m "message" && git push origin vX.Y.Z`
-6. Tag push triggers release workflow (builds, signs with cosign, updates Homebrew/Scoop)
-7. Optionally set custom title: `gh release edit vX.Y.Z --title "vX.Y.Z - Title"`
+**See [docs/release-protocol.md](docs/release-protocol.md) for the complete release protocol.**
+
+Quick summary:
+1. `just bump [major|minor|patch]` - update version
+2. Update docs: CHANGELOG.md, ROADMAP.md, CLAUDE.md, README.md
+3. PR dev → main, merge (**DO NOT delete dev branch**)
+4. Tag and push: `git tag -a vX.Y.Z -m "message" && git push origin vX.Y.Z`
+5. Release workflow builds, signs, publishes to Homebrew/Scoop/GHCR
 
 ### CI Requirements
 

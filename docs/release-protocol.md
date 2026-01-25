@@ -1,12 +1,26 @@
-# Release Procedure
+# Release Protocol
 
-Complete guide for releasing a new version of hp.
+**Mandatory steps for releasing a new version of hp.**
 
 ## Prerequisites
 
 - On the `dev` branch with all changes committed
 - `gh` CLI authenticated (`command gh auth status`)
 - Write access to the repository
+
+## Branch Documentation Strategy
+
+The `dev` and `main` branches have different documentation:
+
+| File | `dev` | `main` |
+|------|-------|--------|
+| `CLAUDE.md` | Full developer instructions | Full developer instructions |
+| `README.md` | May have dev notes | Public-facing, polished |
+| `CHANGELOG.md` | May have `[Unreleased]` section | Released versions only |
+| `ROADMAP.md` | Full roadmap with ideas | Full roadmap |
+| `docs/` | All docs including internal | All docs |
+
+**Key principle**: `main` is what users see on GitHub. Keep it clean and public-facing.
 
 ## Release Steps
 
@@ -25,13 +39,25 @@ just bump major   # 0.7.7 → 1.0.0
 
 ### 2. Update Documentation
 
+**All documentation must be updated before release.**
+
 Update `CHANGELOG.md`:
 - Change `[Unreleased]` to `[X.Y.Z] - YYYY-MM-DD`
-- Add new `[Unreleased]` section at top (if there will be more changes)
+- Ensure all changes are documented under correct categories (Added, Changed, Fixed, etc.)
 
 Update `ROADMAP.md`:
-- Move completed items from "Ideas" to "Completed" section
-- Add version header to completed section
+- Move completed items from "Ideas/Planned" to "Completed" section
+- Add version header with brief description (e.g., `### v0.7.8 - Container Publishing`)
+
+Update `CLAUDE.md`:
+- Update flags table if CLI options changed
+- Update usage examples if behavior changed
+- Update any outdated instructions
+
+Update `README.md`:
+- Update flags table to match current CLI
+- Update usage examples
+- Add new installation methods if applicable (e.g., Docker)
 
 ### 3. Commit Release Preparation
 
@@ -47,9 +73,12 @@ git push origin dev
 # Create PR from dev to main
 command gh pr create --base main --head dev --title "vX.Y.Z - Description"
 
-# Wait for CI checks to pass, then merge
-# IMPORTANT: Do NOT delete dev branch
-command gh pr merge --merge
+# Wait for CI checks to pass (lint, test, CodeQL)
+command gh pr checks <PR-NUMBER> --watch
+
+# Merge the PR
+# IMPORTANT: Do NOT use --delete-branch (preserves dev)
+command gh pr merge <PR-NUMBER> --merge
 ```
 
 ### 5. Create and Push Tag
@@ -69,11 +98,14 @@ git push origin vX.Y.Z
 ### 6. Monitor Release Workflow
 
 ```bash
-# Watch the release workflow
-command gh run watch
-
-# Or check latest runs
+# List recent runs to find the release workflow
 command gh run list --limit 3
+
+# Watch the release workflow (get run ID from above)
+command gh run watch <RUN-ID>
+
+# Or check status
+command gh run view <RUN-ID> --json status,conclusion
 ```
 
 The release workflow will:
@@ -91,8 +123,11 @@ The release workflow will:
 # View the release
 command gh release view vX.Y.Z
 
-# Check container image
-docker pull ghcr.io/colangelo/hp:vX.Y.Z
+# Check container image exists
+docker manifest inspect ghcr.io/colangelo/hp:vX.Y.Z
+
+# Or pull and test it
+docker run --rm ghcr.io/colangelo/hp:vX.Y.Z --version
 ```
 
 ### 8. Post-Release
@@ -186,3 +221,6 @@ git tag -d vX.Y.Z
 - **Always merge dev → main via PR** - never push directly to main
 - **Use `command gh`** - to avoid shell aliases interfering with gh CLI
 - **Cosign signing is automatic** - uses OIDC/keyless signing via GitHub Actions
+- **Update ALL docs before release** - CHANGELOG, ROADMAP, CLAUDE.md, README.md
+- **Review docs for public consumption** - main branch is what users see on GitHub
+- **See CLAUDE.md for full details** - development instructions, architecture, flags reference
