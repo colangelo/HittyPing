@@ -51,6 +51,12 @@ cd HittyPing
 go build -o hp .
 ```
 
+### Docker
+
+```bash
+docker run --rm ghcr.io/colangelo/hp cloudflare.com
+```
+
 ### From releases
 
 Download the binary for your platform from [Releases](https://github.com/colangelo/HittyPing/releases).
@@ -73,7 +79,9 @@ hp dns.google                   # Custom target (https:// auto-added)
 hp -c 10 cloudflare.com         # Send 10 requests then exit
 hp -i 500ms dns.google          # 500ms interval
 hp -t 3s cloudflare.com         # 3 second timeout
-hp -q dns.google                # Quiet mode (hide legend)
+hp --legend dns.google          # Show legend (hidden by default)
+hp -q dns.google                # Quiet mode (hide header + legend)
+hp -Q dns.google                # Silent mode (pure bar output)
 hp -k https://self-signed.test  # Skip TLS verification
 hp -1 httpbin.org               # Force HTTP/1.1 (plain HTTP)
 hp -2 cloudflare.com            # Force HTTP/2 (fail if not negotiated)
@@ -90,14 +98,17 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 | `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
 | `-t` | `--timeout` | | 5s | Request timeout |
-| `-q` | `--nolegend` | | false | Quiet mode (hide legend) |
+| | `--legend` | | false | Show legend (hidden by default) |
+| | `--noheader` | | false | Hide header line |
+| `-q` | `--quiet` | | false | Hide header and legend |
+| `-Q` | `--silent` | | false | Hide header, legend, and final stats |
 | `-m` | `--min` | `HP_MIN` | 0 | Min latency baseline (ms) |
 | `-g` | `--green` | `HP_GREEN` | 150 | Green threshold (ms) |
 | `-y` | `--yellow` | `HP_YELLOW` | 400 | Yellow threshold (ms) |
 | `-k` | `--insecure` | | false | Skip TLS certificate verification |
 | `-1` | `--http` | | false | Use plain HTTP/1.1 |
 | `-2` | `--http2` | | false | Force HTTP/2 (fail if not negotiated) |
-| `-3` | `--http3` | | false | Use HTTP/3 (QUIC) (fail if not negotiated) |
+| `-3` | `--http3` | | false | Use HTTP/3 (QUIC) |
 | `-d` | `--downgrade` | | false | Auto-downgrade on 3 failures (secure only) |
 | `-D` | `--downgrade-insecure` | | false | Auto-downgrade including plain HTTP |
 | `-v` | `--version` | | | Show version |
