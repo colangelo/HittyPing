@@ -16,7 +16,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const version = "0.7.6"
+const version = "0.7.7"
 
 const (
 	// ANSI colors

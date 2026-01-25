@@ -74,6 +74,14 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.7.7 - Display Mode Flags
+
+- [x] `--legend` to show legend (legend now hidden by default)
+- [x] `--noheader` to hide header line
+- [x] `-q/--quiet` to hide header + legend
+- [x] `-Q/--silent` to hide header + legend + final stats (pure bar output)
+- [x] `just bump` recipe for version management
+
 ### v0.7.6 - Signed Releases
 
 - [x] Cosign-signed release binaries (keyless OIDC via GitHub Actions)
