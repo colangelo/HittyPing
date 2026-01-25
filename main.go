@@ -87,7 +87,7 @@ func main() {
 	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
 	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
 	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
-	noLegend := flag.Bool("nolegend", false, "hide the legend line")
+	showLegend := flag.Bool("legend", false, "show the legend line")
 	noHeader := flag.Bool("noheader", false, "hide the header line")
 	quiet := flag.BoolP("quiet", "q", false, "hide header and legend")
 	silent := flag.BoolP("silent", "Q", false, "hide header, legend, and final stats")
@@ -215,7 +215,7 @@ func main() {
 	if !*noHeader && !*quiet && !*silent {
 		printHeader()
 	}
-	if !*noLegend && !*quiet && !*silent {
+	if *showLegend && !*quiet && !*silent {
 		fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
 			gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
 	}

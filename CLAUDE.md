@@ -52,7 +52,7 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 | `-c` | `--count` | | 0 | Number of requests (0 = unlimited) |
 | `-i` | `--interval` | | 1s | Request interval |
 | `-t` | `--timeout` | | 5s | Request timeout |
-| | `--nolegend` | | false | Hide legend line |
+| | `--legend` | | false | Show legend line |
 | | `--noheader` | | false | Hide header line |
 | `-q` | `--quiet` | | false | Hide header and legend |
 | `-Q` | `--silent` | | false | Hide header, legend, and final stats |

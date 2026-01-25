@@ -13,7 +13,7 @@ All notable changes to hp (hittyping) will be documented in this file.
 ### Changed
 
 - **Breaking**: `-q` now means `--quiet` (hide header + legend), not `--nolegend`
-- `--nolegend` no longer has a short flag
+- **Breaking**: Legend hidden by default; use `--legend` to show it (replaces `--nolegend`)
 
 ## [0.7.6] - 2026-01-24
 

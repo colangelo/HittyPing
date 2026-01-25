@@ -37,7 +37,7 @@ cloudflare.com [104.16.132.229]
 ### Near-term Enhancements
 
 - [x] Display mode flags (breaking: reorganizes `-q`):
-  - [x] `--nolegend` to hide legend (replaces `-q/--nolegend`, no short flag)
+  - [x] `--legend` to show legend (legend now hidden by default)
   - [x] `--noheader` to hide header line
   - [x] `-q/--quiet` to hide header + legend (new meaning for `-q`)
   - [x] `-Q/--silent` to hide header + legend + final stats (pure bar output)
