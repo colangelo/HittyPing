@@ -61,7 +61,7 @@ hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 | `-i` | `--interval` | | 1s | Request interval |
 | `-j` | `--jitter` | | 0 | Max random jitter to add to interval (e.g., 200ms, 3s) |
 | `-t` | `--timeout` | | 5s | Request timeout |
-| `-b` | `--braille` | | false | Use braille characters (2x density) |
+| `-b` | `--braille` | | false | Use braille visualization (2x density) |
 | | `--legend` | | false | Show legend line |
 | | `--noheader` | | false | Hide header line |
 | `-q` | `--quiet` | | false | Hide header and legend |

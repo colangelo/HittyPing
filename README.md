@@ -1,10 +1,6 @@
 # `hp :// HittyPing`
 
 <p align="center">
-  <img src="img/hittyping.png" alt="hp output" width="730">
-</p>
-
-<p align="center">
   <a href="https://github.com/colangelo/HittyPing/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/colangelo/HittyPing/ci.yml?branch=main" alt="CI"></a>
   <a href="https://github.com/colangelo/HittyPing/releases"><img src="https://img.shields.io/github/v/release/colangelo/HittyPing" alt="Release"></a>
   <a href="https://goreportcard.com/report/github.com/colangelo/HittyPing"><img src="https://goreportcard.com/badge/github.com/colangelo/HittyPing" alt="Go Report"></a>
@@ -14,16 +10,27 @@
 
 PrettyPing-style HTTP(S) latency monitor with Unicode block visualization and color-coded response times.
 
+<p align="center">
+  <img src="img/hittyping.png" alt="hp output" width="730">
+</p>
+
+**New** in **v0.8.0** Braille characters visualization `-b / --braille` with 2x denser output:
+
+<p align="center">
+  <img src="img/hittyping-braille.png" alt="hp output" width="748">
+</p>
+
 ## Features
 
 - PrettyPing-style Unicode block visualization
-- Color-coded latency (green/yellow/red)
-- Live min/avg/max statistics
 - Protocol selection: HTTP/1.1 (`-1`), HTTP/2 (`-2`), HTTP/3 (QUIC) (`-3`)
 - Auto-downgrade HTTP/3 → 2 → 1 → plain on failures (`-d` secure, `-D` insecure)
-- Request count limit (`-c`) like `ping -c`
-- Summary after graceful exit with Ctrl+C
+- Live min/avg/max statistics
+- Color-coded latency (green/yellow/red)
 - Configurable color thresholds via flags or env vars
+- Optional Braille characters visualization (`-b`) with 2x density
+- Request count limit (`-c`) like `ping -c`
+- Summary at exit, including graceful `Ctrl+C`
 
 ## Installation
 
@@ -101,7 +108,7 @@ hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 | `-i` | `--interval` | | 1s | Request interval |
 | `-j` | `--jitter` | | 0 | Max random jitter to add to interval (e.g., 200ms, 3s) |
 | `-t` | `--timeout` | | 5s | Request timeout |
-| `-b` | `--braille` | | false | Use braille characters (2x density) |
+| `-b` | `--braille` | | false | Use braille visualization (2x density) |
 | | `--legend` | | false | Show legend (hidden by default) |
 | | `--noheader` | | false | Hide header line |
 | `-q` | `--quiet` | | false | Hide header and legend |
