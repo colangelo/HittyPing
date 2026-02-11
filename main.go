@@ -615,10 +615,15 @@ func printDisplay(s *stats) {
 func redrawDisplay(s *stats) {
 	width := getTermWidth()
 
-	// Print the visible tail of blocks (last width-1 blocks)
-	start := len(s.blocks)
-	if start > width-1 {
-		start = len(s.blocks) - (width - 1)
+	// Only redraw blocks that were on the current line before suspend.
+	// s.col tracks how far along the current line we were.
+	count := s.col
+	if count > width-1 {
+		count = width - 1
+	}
+	start := len(s.blocks) - count
+	if start < 0 {
+		start = 0
 	}
 	s.col = 0
 	for i := start; i < len(s.blocks); i++ {
