@@ -8,16 +8,22 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// disableEcho turns off stdin echo so keypresses don't corrupt the display.
-// Returns a function to restore the original terminal state.
-func disableEcho() func() {
+// disableInputProcessing puts the terminal into a mode where keypresses
+// don't affect the display. Disables echo, canonical mode, and extended
+// input processing (VDISCARD, VREPRINT) while keeping signal generation
+// (Ctrl+C) enabled. Returns a function to restore the original state.
+func disableInputProcessing() func() {
 	fd := int(os.Stdin.Fd())
 	termios, err := unix.IoctlGetTermios(fd, unix.TCGETS)
 	if err != nil {
 		return func() {}
 	}
 	old := *termios
-	termios.Lflag &^= unix.ECHO
+	// ECHO: don't echo keypresses
+	// ICANON: disable canonical mode (line buffering, control char processing)
+	// IEXTEN: disable extended input processing (VDISCARD=Ctrl-O, VREPRINT=Ctrl-R)
+	// Keep ISIG enabled so Ctrl+C still generates SIGINT
+	termios.Lflag &^= unix.ECHO | unix.ICANON | unix.IEXTEN
 	if err := unix.IoctlSetTermios(fd, unix.TCSETS, termios); err != nil {
 		return func() {}
 	}

@@ -17,7 +17,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const version = "0.8.0"
+const version = "0.8.1"
 
 const (
 	// ANSI colors
@@ -173,13 +173,13 @@ func main() {
 
 	s := &stats{min: time.Hour, braille: *useBraille}
 
-	// Disable stdin echo to prevent keypresses from corrupting the display,
-	// and hide the cursor for cleaner output.
-	restoreEcho := disableEcho()
+	// Disable terminal input processing to prevent keypresses from corrupting
+	// the display (echo, VDISCARD, VREPRINT, etc.), and hide the cursor.
+	restoreInput := disableInputProcessing()
 	fmt.Print(hideCur)
 	cleanup := func() {
 		fmt.Print(showCur)
-		restoreEcho()
+		restoreInput()
 	}
 
 	// Handle Ctrl+C
