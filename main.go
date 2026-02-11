@@ -12,10 +12,15 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	flag "github.com/spf13/pflag"
 )
+
+// displayMu serializes terminal output so the suspend handler can
+// cleanly pause rendering before the process is actually stopped.
+var displayMu sync.Mutex
 
 const version = "0.8.1"
 
@@ -553,6 +558,9 @@ func getBlock(rtt time.Duration) string {
 }
 
 func printDisplay(s *stats) {
+	displayMu.Lock()
+	defer displayMu.Unlock()
+
 	total := s.count + s.failures
 	var lossPct int
 	if total > 0 {

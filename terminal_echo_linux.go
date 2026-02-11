@@ -3,7 +3,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -37,6 +36,8 @@ func disableInputProcessing() func() {
 
 // handleSuspendResume handles Ctrl-Z (SIGTSTP) by restoring the terminal
 // before suspending and re-applying settings on resume (SIGCONT).
+// Holds displayMu across the suspend/resume cycle so the main loop
+// cannot print while the terminal is being restored.
 func handleSuspendResume(cleanup, setup func()) {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTSTP, syscall.SIGCONT)
@@ -44,16 +45,18 @@ func handleSuspendResume(cleanup, setup func()) {
 		for sig := range ch {
 			switch sig {
 			case syscall.SIGTSTP:
+				// Lock display so no output races with suspend
+				displayMu.Lock()
 				cleanup()
-				// Re-send SIGTSTP with default handler to actually suspend
+				// Re-send SIGTSTP with default handler to actually suspend.
+				// The lock stays held; the whole process is stopped by the OS.
 				signal.Reset(syscall.SIGTSTP)
 				syscall.Kill(syscall.Getpid(), syscall.SIGTSTP)
 			case syscall.SIGCONT:
+				// Process resumed — re-apply terminal settings
 				setup()
-				// Re-register so we catch the next Ctrl-Z
 				signal.Notify(ch, syscall.SIGTSTP)
-				// Redraw current state
-				fmt.Print("")
+				displayMu.Unlock()
 			}
 		}
 	}()
