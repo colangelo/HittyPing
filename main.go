@@ -38,8 +38,10 @@ const (
 	col0    = "\033[0G"
 	saveCur = "\033[s"
 	restCur = "\033[u"
-	hideCur = "\033[?25l"
-	showCur = "\033[?25h"
+	hideCur    = "\033[?25l"
+	showCur    = "\033[?25h"
+	steadyCur  = "\033[2 q" // DECSCUSR: steady block cursor
+	defaultCur = "\033[0 q" // DECSCUSR: reset to terminal default
 )
 
 // Unicode block characters for visualization
@@ -181,11 +183,14 @@ func main() {
 	// Disable terminal input processing to prevent keypresses from corrupting
 	// the display (echo, VDISCARD, VREPRINT, etc.).
 	restoreInput := disableInputProcessing()
+	fmt.Print(steadyCur)
 	cleanup := func() {
+		fmt.Print(defaultCur)
 		restoreInput()
 	}
 	setup := func() {
 		restoreInput = disableInputProcessing()
+		fmt.Print(steadyCur)
 	}
 
 	// Handle Ctrl-Z (suspend) and fg (resume)
