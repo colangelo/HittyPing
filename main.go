@@ -33,6 +33,8 @@ const (
 	col0    = "\033[0G"
 	saveCur = "\033[s"
 	restCur = "\033[u"
+	hideCur = "\033[?25l"
+	showCur = "\033[?25h"
 )
 
 // Unicode block characters for visualization
@@ -171,6 +173,15 @@ func main() {
 
 	s := &stats{min: time.Hour, braille: *useBraille}
 
+	// Disable stdin echo to prevent keypresses from corrupting the display,
+	// and hide the cursor for cleaner output.
+	restoreEcho := disableEcho()
+	fmt.Print(hideCur)
+	cleanup := func() {
+		fmt.Print(showCur)
+		restoreEcho()
+	}
+
 	// Handle Ctrl+C
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
@@ -179,6 +190,7 @@ func main() {
 		if !*silent {
 			printFinal(displayURL, s)
 		}
+		cleanup()
 		os.Exit(0)
 	}()
 
@@ -343,6 +355,7 @@ func main() {
 			if !*silent {
 				printFinal(displayURL, s)
 			}
+			cleanup()
 			os.Exit(0)
 		}
 		sleepDuration := *interval
