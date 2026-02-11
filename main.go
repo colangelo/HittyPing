@@ -181,6 +181,13 @@ func main() {
 		fmt.Print(showCur)
 		restoreInput()
 	}
+	setup := func() {
+		restoreInput = disableInputProcessing()
+		fmt.Print(hideCur)
+	}
+
+	// Handle Ctrl-Z (suspend) and fg (resume)
+	handleSuspendResume(cleanup, setup)
 
 	// Handle Ctrl+C
 	sigCh := make(chan os.Signal, 1)

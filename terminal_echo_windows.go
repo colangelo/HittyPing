@@ -7,3 +7,6 @@ package main
 func disableInputProcessing() func() {
 	return func() {}
 }
+
+// handleSuspendResume is a no-op on Windows (no SIGTSTP/SIGCONT).
+func handleSuspendResume(cleanup, setup func()) {}

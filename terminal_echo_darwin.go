@@ -3,7 +3,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"golang.org/x/sys/unix"
 )
@@ -30,4 +33,28 @@ func disableInputProcessing() func() {
 	return func() {
 		unix.IoctlSetTermios(fd, unix.TIOCSETA, &old)
 	}
+}
+
+// handleSuspendResume handles Ctrl-Z (SIGTSTP) by restoring the terminal
+// before suspending and re-applying settings on resume (SIGCONT).
+func handleSuspendResume(cleanup, setup func()) {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGTSTP, syscall.SIGCONT)
+	go func() {
+		for sig := range ch {
+			switch sig {
+			case syscall.SIGTSTP:
+				cleanup()
+				// Re-send SIGTSTP with default handler to actually suspend
+				signal.Reset(syscall.SIGTSTP)
+				syscall.Kill(syscall.Getpid(), syscall.SIGTSTP)
+			case syscall.SIGCONT:
+				setup()
+				// Re-register so we catch the next Ctrl-Z
+				signal.Notify(ch, syscall.SIGTSTP)
+				// Redraw current state
+				fmt.Print("")
+			}
+		}
+	}()
 }
