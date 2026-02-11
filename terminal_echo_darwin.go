@@ -38,7 +38,7 @@ func disableInputProcessing() func() {
 // before suspending and re-applying settings on resume (SIGCONT).
 // Holds displayMu across the suspend/resume cycle so the main loop
 // cannot print while the terminal is being restored.
-func handleSuspendResume(cleanup, setup func()) {
+func handleSuspendResume(cleanup, setup, redraw func()) {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGTSTP, syscall.SIGCONT)
 	go func() {
@@ -53,8 +53,9 @@ func handleSuspendResume(cleanup, setup func()) {
 				signal.Reset(syscall.SIGTSTP)
 				syscall.Kill(syscall.Getpid(), syscall.SIGTSTP)
 			case syscall.SIGCONT:
-				// Process resumed — re-apply terminal settings
+				// Process resumed — re-apply terminal settings and redraw
 				setup()
+				redraw()
 				signal.Notify(ch, syscall.SIGTSTP)
 				displayMu.Unlock()
 			}
