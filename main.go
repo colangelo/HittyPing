@@ -179,16 +179,13 @@ func main() {
 	s := &stats{min: time.Hour, braille: *useBraille}
 
 	// Disable terminal input processing to prevent keypresses from corrupting
-	// the display (echo, VDISCARD, VREPRINT, etc.), and hide the cursor.
+	// the display (echo, VDISCARD, VREPRINT, etc.).
 	restoreInput := disableInputProcessing()
-	fmt.Print(hideCur)
 	cleanup := func() {
-		fmt.Print(showCur)
 		restoreInput()
 	}
 	setup := func() {
 		restoreInput = disableInputProcessing()
-		fmt.Print(hideCur)
 	}
 
 	// Handle Ctrl-Z (suspend) and fg (resume)
