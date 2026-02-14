@@ -30,7 +30,7 @@ func disableInputProcessing() func() {
 		return func() {}
 	}
 	return func() {
-		unix.IoctlSetTermios(fd, unix.TIOCSETA, &old)
+		_ = unix.IoctlSetTermios(fd, unix.TIOCSETA, &old)
 	}
 }
 
@@ -51,7 +51,7 @@ func handleSuspendResume(cleanup, setup, redraw func()) {
 				// Re-send SIGTSTP with default handler to actually suspend.
 				// The lock stays held; the whole process is stopped by the OS.
 				signal.Reset(syscall.SIGTSTP)
-				syscall.Kill(syscall.Getpid(), syscall.SIGTSTP)
+				_ = syscall.Kill(syscall.Getpid(), syscall.SIGTSTP)
 			case syscall.SIGCONT:
 				// Process resumed — re-apply terminal settings and redraw
 				setup()
