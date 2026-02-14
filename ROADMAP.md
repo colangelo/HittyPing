@@ -74,6 +74,13 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.1 - Terminal Robustness
+
+- [x] Disable stdin echo and input processing to prevent keypress display corruption
+- [x] Proper Ctrl-Z suspend/resume with terminal state restore and bar redraw
+- [x] Display mutex to prevent output race during suspend
+- [x] Steady block cursor via DECSCUSR (on supported terminals)
+
 ### v0.8.0 - Braille Visualization
 
 - [x] `-b/--braille` flag for 2x density braille output

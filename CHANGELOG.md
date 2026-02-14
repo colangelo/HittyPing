@@ -2,6 +2,22 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.8.1] - 2026-02-12
+
+### Fixed
+
+- Keypresses (Ctrl-O, Ctrl-R, etc.) no longer corrupt the bar display
+  - Disabled terminal echo, canonical mode, and extended input processing (VDISCARD/VREPRINT)
+  - Ctrl+C still works via ISIG
+- Ctrl-Z (suspend) now properly restores terminal state and cursor
+  - Bar and stats redraw correctly on `fg` resume
+  - Display mutex prevents output race during suspend sequence
+  - Only current line blocks are redrawn (no spurious extra line)
+
+### Added
+
+- Steady block cursor via DECSCUSR on terminals that support it (Kitty, Alacritty, WezTerm, GNOME Terminal, Windows Terminal, xterm)
+
 ## [0.8.0] - 2026-01-25
 
 ### Added

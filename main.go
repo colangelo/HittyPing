@@ -12,12 +12,17 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	flag "github.com/spf13/pflag"
 )
 
-const version = "0.8.0"
+// displayMu serializes terminal output so the suspend handler can
+// cleanly pause rendering before the process is actually stopped.
+var displayMu sync.Mutex
+
+const version = "0.8.1"
 
 const (
 	// ANSI colors
@@ -33,6 +38,10 @@ const (
 	col0    = "\033[0G"
 	saveCur = "\033[s"
 	restCur = "\033[u"
+	hideCur    = "\033[?25l"
+	showCur    = "\033[?25h"
+	steadyCur  = "\033[2 q" // DECSCUSR: steady block cursor
+	defaultCur = "\033[0 q" // DECSCUSR: reset to terminal default
 )
 
 // Unicode block characters for visualization
@@ -171,6 +180,27 @@ func main() {
 
 	s := &stats{min: time.Hour, braille: *useBraille}
 
+	// Disable terminal input processing to prevent keypresses from corrupting
+	// the display (echo, VDISCARD, VREPRINT, etc.).
+	restoreInput := disableInputProcessing()
+	fmt.Print(steadyCur)
+	cleanup := func() {
+		fmt.Print(defaultCur)
+		restoreInput()
+	}
+	setup := func() {
+		restoreInput = disableInputProcessing()
+		fmt.Print(steadyCur)
+	}
+
+	// Handle Ctrl-Z (suspend) and fg (resume)
+	redraw := func() {
+		fmt.Println() // reserve stats line
+		fmt.Print(up) // move back to bar line
+		redrawDisplay(s)
+	}
+	handleSuspendResume(cleanup, setup, redraw)
+
 	// Handle Ctrl+C
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
@@ -179,6 +209,7 @@ func main() {
 		if !*silent {
 			printFinal(displayURL, s)
 		}
+		cleanup()
 		os.Exit(0)
 	}()
 
@@ -343,6 +374,7 @@ func main() {
 			if !*silent {
 				printFinal(displayURL, s)
 			}
+			cleanup()
 			os.Exit(0)
 		}
 		sleepDuration := *interval
@@ -533,6 +565,9 @@ func getBlock(rtt time.Duration) string {
 }
 
 func printDisplay(s *stats) {
+	displayMu.Lock()
+	defer displayMu.Unlock()
+
 	total := s.count + s.failures
 	var lossPct int
 	if total > 0 {
@@ -566,6 +601,51 @@ func printDisplay(s *stats) {
 	}
 
 	// Save cursor, print stats below, restore cursor
+	fmt.Printf("%s%s%s%s%d/%s%d%s %s(%2d%%) lost;%s %d/%s%d%s/%d%sms; last:%s %s%d%s%sms%s%s",
+		saveCur, down, col0, clearLn,
+		s.failures, bold, total, reset,
+		gray, lossPct, reset,
+		minMs, bold, avg.Milliseconds(), reset, s.max.Milliseconds(), gray, reset,
+		bold, s.last.Milliseconds(), reset, gray, reset,
+		restCur)
+}
+
+// redrawDisplay reprints the visible bar tail and stats from scratch.
+// Caller must hold displayMu.
+func redrawDisplay(s *stats) {
+	width := getTermWidth()
+
+	// Only redraw blocks that were on the current line before suspend.
+	// s.col tracks how far along the current line we were.
+	count := s.col
+	if count > width-1 {
+		count = width - 1
+	}
+	start := len(s.blocks) - count
+	if start < 0 {
+		start = 0
+	}
+	s.col = 0
+	for i := start; i < len(s.blocks); i++ {
+		fmt.Print(s.blocks[i])
+		s.col++
+	}
+	s.lastPrinted = len(s.blocks)
+
+	// Print stats below
+	total := s.count + s.failures
+	var lossPct int
+	if total > 0 {
+		lossPct = s.failures * 100 / total
+	}
+	var avg time.Duration
+	if s.count > 0 {
+		avg = s.total / time.Duration(s.count)
+	}
+	minMs := s.min.Milliseconds()
+	if s.min == time.Hour {
+		minMs = 0
+	}
 	fmt.Printf("%s%s%s%s%d/%s%d%s %s(%2d%%) lost;%s %d/%s%d%s/%d%sms; last:%s %s%d%s%sms%s%s",
 		saveCur, down, col0, clearLn,
 		s.failures, bold, total, reset,
