@@ -563,7 +563,7 @@ func TestTruncateToWidth_TableDriven(t *testing.T) {
 			for i < len(result) {
 				if result[i] == '\033' && i+1 < len(result) && result[i+1] == '[' {
 					j := i + 2
-					for j < len(result) && !((result[j] >= 'A' && result[j] <= 'Z') || (result[j] >= 'a' && result[j] <= 'z')) {
+					for j < len(result) && (result[j] < 'A' || result[j] > 'Z') && (result[j] < 'a' || result[j] > 'z') {
 						j++
 					}
 					if j < len(result) {
