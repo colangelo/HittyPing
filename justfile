@@ -51,6 +51,11 @@ ci:
 clean:
     rm -f hp
 
+# Trigger beta build from dev branch (requires gh CLI)
+beta:
+    command gh workflow run beta.yml --ref dev
+    @echo "Beta workflow triggered. Monitor: command gh run watch"
+
 # Download and verify latest release for current platform
 verify-release:
     #!/usr/bin/env bash
