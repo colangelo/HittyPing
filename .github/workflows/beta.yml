@@ -1,0 +1,151 @@
+name: Beta
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch or commit to build (default: dev)'
+        required: false
+        default: 'dev'
+        type: string
+
+permissions: read-all
+
+jobs:
+  build:
+    name: Build darwin-${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        include:
+          - goarch: arm64
+          - goarch: amd64
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ inputs.ref || 'dev' }}
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: 'stable'
+
+      - name: Build
+        env:
+          GOOS: darwin
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+        run: go build -ldflags="-s -w" -o hp-darwin-${{ matrix.goarch }} .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: beta-darwin-${{ matrix.goarch }}
+          path: hp-darwin-*
+          retention-days: 1
+
+  publish:
+    name: Publish Beta
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: beta-*
+          merge-multiple: true
+
+      - name: Generate checksums
+        run: sha256sum hp-* > checksums.txt && cat checksums.txt
+
+      - name: Create/update beta release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Delete existing beta release and tag if present
+          gh release delete beta --yes 2>/dev/null || true
+          git push origin :refs/tags/beta 2>/dev/null || true
+
+          # Create new pre-release
+          gh release create beta \
+            --prerelease \
+            --title "Beta (dev branch)" \
+            --notes "Rolling beta build from \`${{ inputs.ref || 'dev' }}\` branch."$'\n\n'"Install: \`brew install colangelo/tap/hp-beta\`"$'\n'"Upgrade: \`brew update && brew upgrade hp-beta\`" \
+            hp-* checksums.txt
+
+  update-homebrew:
+    name: Update Homebrew Formula
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ inputs.ref || 'dev' }}
+
+      - name: Calculate checksums and version
+        run: |
+          BASE_URL="https://github.com/colangelo/HittyPing/releases/download/beta"
+          # Wait for release assets to propagate
+          sleep 5
+          curl -sLf "${BASE_URL}/hp-darwin-arm64" | sha256sum | cut -d' ' -f1 > darwin-arm64.sha
+          curl -sLf "${BASE_URL}/hp-darwin-amd64" | sha256sum | cut -d' ' -f1 > darwin-amd64.sha
+
+          # Extract version from source and add beta suffix with timestamp
+          # Timestamp ensures brew upgrade works (monotonically increasing)
+          APP_VERSION=$(grep 'const version = ' main.go | sed 's/.*"\(.*\)".*/\1/')
+          TIMESTAMP=$(date -u +%Y%m%d%H%M%S)
+          echo "BETA_VERSION=${APP_VERSION}-beta.${TIMESTAMP}" >> $GITHUB_ENV
+
+      - name: Update homebrew-tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          DARWIN_ARM64=$(cat darwin-arm64.sha)
+          DARWIN_AMD64=$(cat darwin-amd64.sha)
+
+          git clone https://x-access-token:${GH_TOKEN}@github.com/colangelo/homebrew-tap.git
+          cd homebrew-tap
+
+          cat > Formula/hp-beta.rb << FORMULA
+          class HpBeta < Formula
+            desc "Prettyping-style HTTP(S) latency monitor (beta channel)"
+            homepage "https://github.com/colangelo/HittyPing"
+            license "MIT"
+            version "${BETA_VERSION}"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "https://github.com/colangelo/HittyPing/releases/download/beta/hp-darwin-arm64"
+                sha256 "${DARWIN_ARM64}"
+              else
+                url "https://github.com/colangelo/HittyPing/releases/download/beta/hp-darwin-amd64"
+                sha256 "${DARWIN_AMD64}"
+              end
+            end
+
+            def install
+              binary = Dir["hp-*"].first || "hp"
+              bin.install binary => "hp-beta"
+            end
+
+            test do
+              assert_match "hp (hittyping)", shell_output("#{bin}/hp-beta --version")
+            end
+          end
+          FORMULA
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/hp-beta.rb
+          git diff --staged --quiet || git commit -m "Update hp-beta to ${BETA_VERSION}"
+          git push
