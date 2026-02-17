@@ -520,6 +520,70 @@ func TestGetURLForProto_TableDriven(t *testing.T) {
 	}
 }
 
+// =============================================================================
+// Test: truncateToWidth function tests
+// =============================================================================
+
+func TestTruncateToWidth_TableDriven(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		width    int
+		wantVis  int  // expected visible length of result
+		wantFull bool // true if result should equal input (no truncation)
+	}{
+		{"plain-fits", "hello", 10, 5, true},
+		{"plain-exact", "hello", 5, 5, true},
+		{"plain-truncated", "hello world", 5, 5, false},
+		{"ansi-fits", "\033[32mhello\033[0m", 10, 5, true},
+		{"ansi-exact", "\033[32mhello\033[0m", 5, 5, true},
+		{"ansi-truncated", "\033[32mhello world\033[0m", 5, 5, false},
+		{"width-zero", "hello", 0, 0, false},
+		{"width-one", "hello", 1, 1, false},
+		{"empty-string", "", 10, 0, true},
+		{"multi-ansi", "\033[31m\033[1m!\033[0m", 5, 1, true},
+		{"multi-ansi-trunc", "\033[31ma\033[0m\033[32mb\033[0m\033[33mc\033[0m", 2, 2, false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := truncateToWidth(tc.input, tc.width)
+
+			if tc.wantFull {
+				if result != tc.input {
+					t.Errorf("truncateToWidth(%q, %d) = %q; want %q (unchanged)",
+						tc.input, tc.width, result, tc.input)
+				}
+				return
+			}
+
+			// Count visible characters (non-ANSI)
+			vis := 0
+			i := 0
+			for i < len(result) {
+				if result[i] == '\033' && i+1 < len(result) && result[i+1] == '[' {
+					j := i + 2
+					for j < len(result) && !((result[j] >= 'A' && result[j] <= 'Z') || (result[j] >= 'a' && result[j] <= 'z')) {
+						j++
+					}
+					if j < len(result) {
+						j++
+					}
+					i = j
+					continue
+				}
+				vis++
+				i++
+			}
+
+			if vis > tc.wantVis {
+				t.Errorf("truncateToWidth(%q, %d) visible chars = %d; want <= %d",
+					tc.input, tc.width, vis, tc.wantVis)
+			}
+		})
+	}
+}
+
 func TestGetEnvInt_TableDriven(t *testing.T) {
 	tests := []struct {
 		name     string

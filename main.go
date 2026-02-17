@@ -36,8 +36,6 @@ const (
 	up      = "\033[A"
 	down    = "\033[B"
 	col0    = "\033[0G"
-	saveCur = "\033[s"
-	restCur = "\033[u"
 	hideCur    = "\033[?25l"
 	showCur    = "\033[?25h"
 	steadyCur  = "\033[2 q" // DECSCUSR: steady block cursor
@@ -564,25 +562,43 @@ func getBlock(rtt time.Duration) string {
 	return color + blocks[idx] + reset
 }
 
+// truncateToWidth truncates s so its visible width does not exceed w columns.
+// ANSI escape sequences are preserved but do not count toward width.
+// If truncated, a reset sequence is appended to avoid color bleed.
+func truncateToWidth(s string, w int) string {
+	if w <= 0 {
+		return reset
+	}
+	var b strings.Builder
+	vis := 0
+	i := 0
+	for i < len(s) {
+		if s[i] == '\033' && i+1 < len(s) && s[i+1] == '[' {
+			j := i + 2
+			for j < len(s) && !((s[j] >= 'A' && s[j] <= 'Z') || (s[j] >= 'a' && s[j] <= 'z')) {
+				j++
+			}
+			if j < len(s) {
+				j++
+			}
+			b.WriteString(s[i:j])
+			i = j
+			continue
+		}
+		if vis >= w {
+			b.WriteString(reset)
+			return b.String()
+		}
+		b.WriteByte(s[i])
+		vis++
+		i++
+	}
+	return b.String()
+}
+
 func printDisplay(s *stats) {
 	displayMu.Lock()
 	defer displayMu.Unlock()
-
-	total := s.count + s.failures
-	var lossPct int
-	if total > 0 {
-		lossPct = s.failures * 100 / total
-	}
-
-	var avg time.Duration
-	if s.count > 0 {
-		avg = s.total / time.Duration(s.count)
-	}
-
-	minMs := s.min.Milliseconds()
-	if s.min == time.Hour {
-		minMs = 0
-	}
 
 	width := getTermWidth()
 
@@ -600,14 +616,7 @@ func printDisplay(s *stats) {
 		}
 	}
 
-	// Save cursor, print stats below, restore cursor
-	fmt.Printf("%s%s%s%s%d/%s%d%s %s(%2d%%) lost;%s %d/%s%d%s/%d%sms; last:%s %s%d%s%sms%s%s",
-		saveCur, down, col0, clearLn,
-		s.failures, bold, total, reset,
-		gray, lossPct, reset,
-		minMs, bold, avg.Milliseconds(), reset, s.max.Milliseconds(), gray, reset,
-		bold, s.last.Milliseconds(), reset, gray, reset,
-		restCur)
+	printStats(s, width)
 }
 
 // redrawDisplay reprints the visible bar tail and stats from scratch.
@@ -632,7 +641,13 @@ func redrawDisplay(s *stats) {
 	}
 	s.lastPrinted = len(s.blocks)
 
-	// Print stats below
+	printStats(s, width)
+}
+
+// printStats prints the stats line below the bar and returns the cursor
+// to its position on the bar line. Uses relative cursor movement instead
+// of save/restore to avoid position corruption from terminal scrolling.
+func printStats(s *stats, width int) {
 	total := s.count + s.failures
 	var lossPct int
 	if total > 0 {
@@ -646,13 +661,18 @@ func redrawDisplay(s *stats) {
 	if s.min == time.Hour {
 		minMs = 0
 	}
-	fmt.Printf("%s%s%s%s%d/%s%d%s %s(%2d%%) lost;%s %d/%s%d%s/%d%sms; last:%s %s%d%s%sms%s%s",
-		saveCur, down, col0, clearLn,
+
+	statsText := fmt.Sprintf("%d/%s%d%s %s(%2d%%) lost;%s %d/%s%d%s/%d%sms; last:%s %s%d%s%sms%s",
 		s.failures, bold, total, reset,
 		gray, lossPct, reset,
 		minMs, bold, avg.Milliseconds(), reset, s.max.Milliseconds(), gray, reset,
-		bold, s.last.Milliseconds(), reset, gray, reset,
-		restCur)
+		bold, s.last.Milliseconds(), reset, gray, reset)
+
+	statsText = truncateToWidth(statsText, width)
+
+	// \n moves to stats line (scrolls if at bottom), print stats, then
+	// use relative up + column positioning to return to bar line.
+	fmt.Printf("\n%s%s%s%s\033[%dG", col0, clearLn, statsText, up, s.col+1)
 }
 
 func printFinal(url string, s *stats) {
