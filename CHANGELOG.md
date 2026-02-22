@@ -2,6 +2,18 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.8.2] - 2026-02-22
+
+### Fixed
+
+- Cursor no longer lands on the stats line in braille mode (replaced absolute save/restore with relative cursor movement)
+- Stats line truncated to terminal width to prevent wrapping-induced scroll
+
+### Added
+
+- Beta release channel via Homebrew tap (`brew install colangelo/tap/hp-beta`)
+- `just beta` recipe to trigger beta builds from dev branch
+
 ## [0.8.1] - 2026-02-12
 
 ### Fixed
