@@ -74,6 +74,13 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.2 - Cursor Fix & Beta Channel
+
+- [x] Fix cursor positioning: replace saveCur/restCur with relative movement (immune to scroll)
+- [x] Truncate stats line to terminal width to prevent wrapping
+- [x] Beta release channel via `brew install colangelo/tap/hp-beta`
+- [x] `just beta` recipe for triggering dev branch builds
+
 ### v0.8.1 - Terminal Robustness
 
 - [x] Disable stdin echo and input processing to prevent keypress display corruption
