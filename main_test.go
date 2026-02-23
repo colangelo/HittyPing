@@ -584,6 +584,154 @@ func TestTruncateToWidth_TableDriven(t *testing.T) {
 	}
 }
 
+// =============================================================================
+// Test: fmtDuration function tests
+// =============================================================================
+
+func TestFmtDuration_TableDriven(t *testing.T) {
+	tests := []struct {
+		name string
+		d    time.Duration
+		want string
+	}{
+		{"zero", 0, "0s"},
+		{"one-second", time.Second, "1s"},
+		{"seconds", 45 * time.Second, "45s"},
+		{"one-minute", time.Minute, "1m00s"},
+		{"minutes-seconds", 2*time.Minute + 13*time.Second, "2m13s"},
+		{"exact-minutes", 15 * time.Minute, "15m00s"},
+		{"one-hour", time.Hour, "1h00m"},
+		{"hours-minutes", time.Hour + 2*time.Minute, "1h02m"},
+		{"large", 3*time.Hour + 45*time.Minute, "3h45m"},
+		{"subsecond-truncated", 500 * time.Millisecond, "0s"},
+		{"59-seconds", 59 * time.Second, "59s"},
+		{"60-seconds", 60 * time.Second, "1m00s"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := fmtDuration(tc.d)
+			if got != tc.want {
+				t.Errorf("fmtDuration(%v) = %q; want %q", tc.d, got, tc.want)
+			}
+		})
+	}
+}
+
+// =============================================================================
+// Test: recordPeriod function tests
+// =============================================================================
+
+func TestRecordPeriod(t *testing.T) {
+	t.Run("first-success-creates-up", func(t *testing.T) {
+		s := &stats{}
+		recordPeriod(s, true)
+		if s.currentPeriod == nil {
+			t.Fatal("currentPeriod is nil")
+		}
+		if !s.currentPeriod.up {
+			t.Error("expected UP period")
+		}
+		if s.currentPeriod.count != 1 {
+			t.Errorf("count = %d; want 1", s.currentPeriod.count)
+		}
+		if len(s.periods) != 0 {
+			t.Errorf("periods = %d; want 0", len(s.periods))
+		}
+	})
+
+	t.Run("first-failure-creates-down", func(t *testing.T) {
+		s := &stats{}
+		recordPeriod(s, false)
+		if s.currentPeriod == nil {
+			t.Fatal("currentPeriod is nil")
+		}
+		if s.currentPeriod.up {
+			t.Error("expected DOWN period")
+		}
+		if s.currentPeriod.count != 1 {
+			t.Errorf("count = %d; want 1", s.currentPeriod.count)
+		}
+	})
+
+	t.Run("consecutive-same-increments", func(t *testing.T) {
+		s := &stats{}
+		recordPeriod(s, true)
+		recordPeriod(s, true)
+		recordPeriod(s, true)
+		if s.currentPeriod.count != 3 {
+			t.Errorf("count = %d; want 3", s.currentPeriod.count)
+		}
+		if len(s.periods) != 0 {
+			t.Errorf("periods = %d; want 0", len(s.periods))
+		}
+	})
+
+	t.Run("transition-closes-period", func(t *testing.T) {
+		s := &stats{}
+		recordPeriod(s, true)
+		recordPeriod(s, true)
+		recordPeriod(s, false) // transition
+		if len(s.periods) != 1 {
+			t.Fatalf("periods = %d; want 1", len(s.periods))
+		}
+		if !s.periods[0].up {
+			t.Error("closed period should be UP")
+		}
+		if s.periods[0].count != 2 {
+			t.Errorf("closed period count = %d; want 2", s.periods[0].count)
+		}
+		if s.currentPeriod.up {
+			t.Error("current period should be DOWN")
+		}
+		if s.currentPeriod.count != 1 {
+			t.Errorf("current count = %d; want 1", s.currentPeriod.count)
+		}
+	})
+
+	t.Run("multiple-transitions", func(t *testing.T) {
+		s := &stats{}
+		recordPeriod(s, true)  // UP
+		recordPeriod(s, true)  // UP (2)
+		recordPeriod(s, false) // DOWN
+		recordPeriod(s, false) // DOWN (2)
+		recordPeriod(s, false) // DOWN (3)
+		recordPeriod(s, true)  // UP again
+		if len(s.periods) != 2 {
+			t.Fatalf("periods = %d; want 2", len(s.periods))
+		}
+		if !s.periods[0].up || s.periods[0].count != 2 {
+			t.Errorf("period[0]: up=%v count=%d; want up=true count=2", s.periods[0].up, s.periods[0].count)
+		}
+		if s.periods[1].up || s.periods[1].count != 3 {
+			t.Errorf("period[1]: up=%v count=%d; want up=false count=3", s.periods[1].up, s.periods[1].count)
+		}
+		if !s.currentPeriod.up || s.currentPeriod.count != 1 {
+			t.Errorf("current: up=%v count=%d; want up=true count=1", s.currentPeriod.up, s.currentPeriod.count)
+		}
+	})
+
+	t.Run("close-periods", func(t *testing.T) {
+		s := &stats{}
+		recordPeriod(s, true)
+		recordPeriod(s, false)
+		closePeriods(s)
+		if len(s.periods) != 2 {
+			t.Fatalf("periods = %d; want 2", len(s.periods))
+		}
+		if s.currentPeriod != nil {
+			t.Error("currentPeriod should be nil after close")
+		}
+	})
+
+	t.Run("close-nil-noop", func(t *testing.T) {
+		s := &stats{}
+		closePeriods(s) // should not panic
+		if len(s.periods) != 0 {
+			t.Errorf("periods = %d; want 0", len(s.periods))
+		}
+	})
+}
+
 func TestGetEnvInt_TableDriven(t *testing.T) {
 	tests := []struct {
 		name     string

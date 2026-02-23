@@ -84,6 +84,7 @@ jobs:
           # Delete existing beta release and tag if present
           gh release delete beta --yes 2>/dev/null || true
           git push origin :refs/tags/beta 2>/dev/null || true
+          git tag -d beta 2>/dev/null || true
 
           # Create new pre-release
           gh release create beta \
