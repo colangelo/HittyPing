@@ -83,19 +83,49 @@ func getEnvInt(key string, def int64) int64 {
 	return def
 }
 
+type period struct {
+	up    bool
+	start time.Time
+	count int
+}
+
 type stats struct {
-	count        int
-	failures     int
-	total        time.Duration
-	min          time.Duration
-	max          time.Duration
-	last         time.Duration
-	blocks       []string      // individual blocks for proper width handling
-	col          int           // current column position on bar line
-	lastPrinted  int           // last block index printed
-	braille      bool          // braille mode enabled
-	pendingRTT   time.Duration // pending RTT for braille pairing (-1 = failure, 0 = none)
-	hasPending   bool          // whether there's a pending RTT
+	count         int
+	failures      int
+	total         time.Duration
+	min           time.Duration
+	max           time.Duration
+	last          time.Duration
+	blocks        []string      // individual blocks for proper width handling
+	col           int           // current column position on bar line
+	lastPrinted   int           // last block index printed
+	braille       bool          // braille mode enabled
+	pendingRTT    time.Duration // pending RTT for braille pairing (-1 = failure, 0 = none)
+	hasPending    bool          // whether there's a pending RTT
+	periods       []period      // completed UP/DOWN periods
+	currentPeriod *period       // active period (nil until first request)
+}
+
+func recordPeriod(s *stats, up bool) {
+	now := time.Now()
+	if s.currentPeriod == nil {
+		s.currentPeriod = &period{up: up, start: now, count: 1}
+		return
+	}
+	if s.currentPeriod.up == up {
+		s.currentPeriod.count++
+		return
+	}
+	// State flipped — close current period and start new one
+	s.periods = append(s.periods, *s.currentPeriod)
+	s.currentPeriod = &period{up: up, start: now, count: 1}
+}
+
+func closePeriods(s *stats) {
+	if s.currentPeriod != nil {
+		s.periods = append(s.periods, *s.currentPeriod)
+		s.currentPeriod = nil
+	}
 }
 
 func main() {
@@ -204,6 +234,7 @@ func main() {
 	signal.Notify(sigCh, os.Interrupt)
 	go func() {
 		<-sigCh
+		closePeriods(s)
 		if !*silent {
 			printFinal(displayURL, s)
 		}
@@ -280,6 +311,7 @@ func main() {
 		if err != nil {
 			s.failures++
 			consecutiveFailures++
+			recordPeriod(s, false)
 			if s.braille {
 				if s.hasPending {
 					// Pair with pending: pending=left, failure=right
@@ -344,6 +376,7 @@ func main() {
 		} else {
 			s.count++
 			consecutiveFailures = 0 // Reset on success
+			recordPeriod(s, true)
 			s.total += rtt
 			s.last = rtt
 			if rtt < s.min {
@@ -369,6 +402,7 @@ func main() {
 		printDisplay(s)
 		requestNum++
 		if *count > 0 && requestNum >= *count {
+			closePeriods(s)
 			if !*silent {
 				printFinal(displayURL, s)
 			}
@@ -676,6 +710,20 @@ func printStats(s *stats, width int) {
 	fmt.Printf("\n%s%s%s%s\033[%dG", col0, clearLn, statsText, up, s.col+1)
 }
 
+func fmtDuration(d time.Duration) string {
+	d = d.Truncate(time.Second)
+	h := int(d.Hours())
+	m := int(d.Minutes()) % 60
+	sec := int(d.Seconds()) % 60
+	if h > 0 {
+		return fmt.Sprintf("%dh%02dm", h, m)
+	}
+	if m > 0 {
+		return fmt.Sprintf("%dm%02ds", m, sec)
+	}
+	return fmt.Sprintf("%ds", sec)
+}
+
 func printFinal(url string, s *stats) {
 	total := s.count + s.failures
 	var lossPct int
@@ -697,5 +745,50 @@ func printFinal(url string, s *stats) {
 	fmt.Printf("%d requests, %d ok, %d failed, %d%% loss\n", total, s.count, s.failures, lossPct)
 	if s.count > 0 {
 		fmt.Printf("round-trip min/avg/max = %d/%d/%d ms\n", minMs, avg.Milliseconds(), s.max.Milliseconds())
+	}
+
+	if s.failures > 0 && len(s.periods) > 0 {
+		fmt.Printf("%stimeline:%s\n", gray, reset)
+		periods := s.periods
+		truncated := 0
+		if len(periods) > 20 {
+			truncated = len(periods) - 10
+			head := periods[:5]
+			tail := periods[len(periods)-5:]
+			periods = append(head, tail...)
+		}
+		now := time.Now()
+		for i, p := range periods {
+			ts := p.start.Format("15:04:05")
+			var label, color, detail string
+			if p.up {
+				label = "UP  "
+				color = green
+				detail = fmt.Sprintf("(%d ok)", p.count)
+			} else {
+				label = "DOWN"
+				color = red
+				detail = fmt.Sprintf("(%d lost)", p.count)
+			}
+			isLast := i == len(periods)-1 && truncated == 0 ||
+				i == len(periods)-1 && truncated > 0
+
+			if isLast {
+				fmt.Printf("  %s  %s%s%s  %s← active%s\n", ts, color, label, reset, gray, reset)
+			} else {
+				var end time.Time
+				if i+1 < len(periods) {
+					end = periods[i+1].start
+				} else {
+					end = now
+				}
+				dur := fmtDuration(end.Sub(p.start))
+				fmt.Printf("  %s  %s%s%s  %6s %s\n", ts, color, label, reset, dur, detail)
+			}
+
+			if truncated > 0 && i == 4 {
+				fmt.Printf("  %s... %d more ...%s\n", gray, truncated, reset)
+			}
+		}
 	}
 }
