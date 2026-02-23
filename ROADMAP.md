@@ -74,6 +74,11 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.3 - Proxy Support & Signed Betas
+
+- [x] Proxy support via `HTTPS_PROXY`/`HTTP_PROXY` env vars (SOCKS5, HTTP)
+- [x] Cosign-signed beta releases (OpenSSF Scorecard compliance)
+
 ### v0.8.2 - Cursor Fix & Beta Channel
 
 - [x] Fix cursor positioning: replace saveCur/restCur with relative movement (immune to scroll)

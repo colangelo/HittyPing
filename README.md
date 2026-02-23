@@ -98,6 +98,8 @@ hp -3 -d example.com            # HTTP/3 with auto-downgrade on failures
 hp -3 -D example.com            # Auto-downgrade including plain HTTP
 hp -b cloudflare.com            # Braille mode (2x density)
 hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
+HTTPS_PROXY=socks5://host:1080 hp site  # Via SOCKS5 proxy
+HTTP_PROXY=http://proxy:8080 hp -1 site # Via HTTP proxy
 ```
 
 ## Flags

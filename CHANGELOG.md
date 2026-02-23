@@ -2,6 +2,16 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.8.3] - 2026-02-23
+
+### Fixed
+
+- Proxy support: HTTP transport now respects `HTTPS_PROXY`/`HTTP_PROXY`/`ALL_PROXY` environment variables (SOCKS5, HTTP proxies)
+
+### Security
+
+- Beta releases are now cosign-signed (fixes OpenSSF Scorecard Signed-Releases warning)
+
 ## [0.8.2] - 2026-02-22
 
 ### Fixed
