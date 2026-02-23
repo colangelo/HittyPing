@@ -22,7 +22,7 @@ import (
 // cleanly pause rendering before the process is actually stopped.
 var displayMu sync.Mutex
 
-const version = "0.8.2"
+const version = "0.8.3"
 
 const (
 	// ANSI colors
@@ -412,6 +412,7 @@ func createClient(protoLevel int, timeout time.Duration, insecure bool) *http.Cl
 	}
 
 	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: insecure,
 		},
