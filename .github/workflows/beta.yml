@@ -52,6 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
@@ -66,6 +67,16 @@ jobs:
       - name: Generate checksums
         run: sha256sum hp-* > checksums.txt && cat checksums.txt
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Sign binaries with cosign
+        run: |
+          for file in hp-*; do
+            cosign sign-blob --yes --output-signature "${file}.sig" --output-certificate "${file}.pem" "${file}"
+          done
+          cosign sign-blob --yes --output-signature checksums.txt.sig --output-certificate checksums.txt.pem checksums.txt
+
       - name: Create/update beta release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,7 +90,7 @@ jobs:
             --prerelease \
             --title "Beta (dev branch)" \
             --notes "Rolling beta build from \`${{ inputs.ref || 'dev' }}\` branch."$'\n\n'"Install: \`brew install colangelo/tap/hp-beta\`"$'\n'"Upgrade: \`brew update && brew upgrade hp-beta\`" \
-            hp-* checksums.txt
+            hp-* checksums.txt checksums.txt.sig checksums.txt.pem
 
   update-homebrew:
     name: Update Homebrew Formula
