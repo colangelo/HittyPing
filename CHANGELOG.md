@@ -2,6 +2,15 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.8.4] - 2026-02-24
+
+### Added
+
+- Connection timeline in exit summary: color-coded UP/DOWN periods with start times, durations, and request counts for diagnosing intermittent outages
+- Timeline only appears when failures occurred (no noise for clean sessions)
+- Truncation for flappy connections: shows first 5 + last 5 periods when exceeding 20 transitions
+- OpenSpec commands and skills for Claude Code
+
 ## [0.8.3] - 2026-02-23
 
 ### Fixed

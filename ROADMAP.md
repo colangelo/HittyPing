@@ -74,6 +74,14 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.4 - Connection Timeline
+
+- [x] Track alternating UP/DOWN periods during monitoring
+- [x] Display color-coded timeline in exit summary (green UP, red DOWN)
+- [x] Compact duration formatting (7s, 2m13s, 1h02m)
+- [x] Truncation for flappy connections (first 5 + last 5 when >20 periods)
+- [x] Timeline only shown when failures occurred
+
 ### v0.8.3 - Proxy Support & Signed Betas
 
 - [x] Proxy support via `HTTPS_PROXY`/`HTTP_PROXY` env vars (SOCKS5, HTTP)
