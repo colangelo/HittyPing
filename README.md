@@ -30,6 +30,7 @@ PrettyPing-style HTTP(S) latency monitor with Unicode block visualization and co
 - Configurable color thresholds via flags or env vars
 - Optional Braille characters visualization (`-b`) with 2x density
 - Request count limit (`-c`) like `ping -c`
+- Connection timeline on exit: color-coded UP/DOWN periods for diagnosing intermittent outages
 - Summary at exit, including graceful `Ctrl+C`
 
 ## Installation
