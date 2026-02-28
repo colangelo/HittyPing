@@ -22,7 +22,7 @@ import (
 // cleanly pause rendering before the process is actually stopped.
 var displayMu sync.Mutex
 
-const version = "0.8.4"
+const version = "0.8.5"
 
 const (
 	// ANSI colors
@@ -758,8 +758,17 @@ func printFinal(url string, s *stats) {
 			periods = append(head, tail...)
 		}
 		now := time.Now()
+		// include date if session spans multiple calendar days
+		tsFmt := "15:04:05"
+		if len(s.periods) > 0 {
+			first := s.periods[0].start
+			last := now
+			if first.Format("2006-01-02") != last.Format("2006-01-02") {
+				tsFmt = "Jan 02 15:04:05"
+			}
+		}
 		for i, p := range periods {
-			ts := p.start.Format("15:04:05")
+			ts := p.start.Format(tsFmt)
 			var label, color, detail string
 			if p.up {
 				label = "UP  "
