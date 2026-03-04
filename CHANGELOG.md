@@ -2,6 +2,12 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.8.5] - 2026-03-04
+
+### Changed
+
+- Timeline includes date (e.g., `Feb 27 10:02:18`) when session spans multiple calendar days
+
 ## [0.8.4] - 2026-02-24
 
 ### Added
