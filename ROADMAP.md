@@ -74,6 +74,10 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.5 - Timeline Date Display
+
+- [x] Include date in timeline when session spans multiple calendar days
+
 ### v0.8.4 - Connection Timeline
 
 - [x] Track alternating UP/DOWN periods during monitoring
