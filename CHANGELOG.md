@@ -6,6 +6,7 @@ All notable changes to hp (hittyping) will be documented in this file.
 
 ### Changed
 
+- Bump Go toolchain: 1.25.6 → 1.26.2
 - Bump dependencies: `golang.org/x/sys` 0.38.0 → 0.43.0, `golang.org/x/crypto` 0.45.0 → 0.50.0, `golang.org/x/net` 0.47.0 → 0.53.0, `golang.org/x/text` 0.31.0 → 0.36.0
 
 ## [0.8.5] - 2026-03-04
