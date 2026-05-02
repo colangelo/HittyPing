@@ -22,7 +22,7 @@ import (
 // cleanly pause rendering before the process is actually stopped.
 var displayMu sync.Mutex
 
-const version = "0.8.5"
+const version = "0.8.6"
 
 const (
 	// ANSI colors
