@@ -189,13 +189,13 @@ func main() {
 
 	displayURL := host
 
-	// Resolve hostname to IP for display (and validate it exists)
+	// Resolve hostname to IP for display (and validate it exists).
+	// Skipped when a proxy is configured: the proxy resolves the host
+	// (e.g. socks5h), so the local resolver may legitimately fail.
 	resolvedIP := ""
 	// Strip brackets from IPv6 for parsing and display
 	hostForLookup := strings.TrimPrefix(strings.TrimSuffix(displayURL, "]"), "[")
-	// Check if it's already an IP address
-	if ip := net.ParseIP(hostForLookup); ip == nil {
-		// It's a hostname, resolve it
+	if ip := net.ParseIP(hostForLookup); ip == nil && !proxyConfigured() {
 		ips, err := net.LookupHost(hostForLookup)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: cannot resolve %s: %v\n", hostForLookup, err)
@@ -438,6 +438,17 @@ func measureRTT(client *http.Client, url string, protoLevel int) (time.Duration,
 	}
 
 	return elapsed, nil
+}
+
+// proxyConfigured reports whether any HTTP/HTTPS proxy env var is set.
+// Mirrors the variables consulted by http.ProxyFromEnvironment.
+func proxyConfigured() bool {
+	for _, k := range []string{"HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy"} {
+		if os.Getenv(k) != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func createClient(protoLevel int, timeout time.Duration, insecure bool) *http.Client {
