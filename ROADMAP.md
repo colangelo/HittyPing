@@ -74,6 +74,11 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.6 - Toolchain & Dependency Refresh
+
+- [x] Bump Go toolchain to 1.26.2
+- [x] Update `golang.org/x/sys`, `x/crypto`, `x/net`, `x/text` to latest patch series
+
 ### v0.8.5 - Timeline Date Display
 
 - [x] Include date in timeline when session spans multiple calendar days
