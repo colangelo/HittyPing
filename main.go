@@ -29,6 +29,7 @@ const (
 	green   = "\033[32m"
 	yellow  = "\033[33m"
 	red     = "\033[31m"
+	purple  = "\033[35m"
 	gray    = "\033[90m"
 	bold    = "\033[1m"
 	reset   = "\033[0m"
@@ -290,8 +291,8 @@ func main() {
 	}
 	if *showLegend && !*quiet && !*silent {
 		if *useBraille {
-			fmt.Printf("%sLegend: %s⡀⡄%s<%dms %s⡆%s<%dms %s⡇%s>=%dms %s%s!%sfail %s(2x density)%s\n",
-				gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, gray, reset)
+			fmt.Printf("%sLegend: %s⡀⡄%s<%dms %s⡆%s<%dms %s⡇%s>=%dms %s%s⣿%sfail %s(2x density)%s\n",
+				gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, purple, bold, reset, gray, reset)
 		} else {
 			fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
 				gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
@@ -528,15 +529,10 @@ func getBrailleChar(leftRTT, rightRTT time.Duration) string {
 	leftHeight := getBrailleHeight(leftRTT)
 	rightHeight := getBrailleHeight(rightRTT)
 
-	// Handle failures
-	if leftHeight < 0 && rightHeight < 0 {
-		return red + bold + "!" + reset
-	}
-	if leftHeight < 0 {
-		leftHeight = 0
-	}
-	if rightHeight < 0 {
-		rightHeight = 0
+	// Any failure in the pair renders as a full purple cell (⣿).
+	// A failure dominates the slot — the paired success is dropped visually.
+	if leftHeight < 0 || rightHeight < 0 {
+		return purple + bold + "⣿" + reset
 	}
 
 	// Build braille character
