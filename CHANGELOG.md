@@ -2,6 +2,13 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Braille mode: failures now render as a full purple cell (`⣿`) instead of a literal `!`, making outages visually distinct from latency bars
+- Bump Dockerfile base image to `golang:1.26-alpine`
+
 ## [0.8.6] - 2026-05-17
 
 ### Changed
