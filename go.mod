@@ -3,7 +3,7 @@ module github.com/ac/hp
 go 1.26.2
 
 require (
-	github.com/quic-go/quic-go v0.59.0
+	github.com/quic-go/quic-go v0.59.1
 	github.com/spf13/pflag v1.0.10
 	golang.org/x/sys v0.43.0
 )
