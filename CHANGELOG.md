@@ -4,6 +4,11 @@ All notable changes to hp (hittyping) will be documented in this file.
 
 ## [0.8.7] - 2026-11-08
 
+### Security
+
+- Bump `golang.org/x/text` 0.36.0 → 0.43.0 (GO-2026-5970, fixed in 0.39.0), `golang.org/x/net` 0.53.0 → 0.62.0 (GO-2026-5026, fixed in 0.55.0) and `github.com/quic-go/quic-go` 0.59.0 → 0.65.0 (GO-2026-5676, fixed in 0.59.1); also `x/crypto` 0.58.0 and `x/sys` 0.49.0
+- CI: pin golangci-lint v2.15.0 (v2.9.0 panicked on Go 1.27 stdlib)
+
 ### Changed
 
 - Braille mode: failures now render as a full purple cell (`⣿`) instead of a literal `!`, making outages visually distinct from latency bars
