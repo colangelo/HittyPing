@@ -74,6 +74,11 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.7 - Braille Failure Cells
+
+- [x] Braille mode: failures render as a full purple cell instead of `!`
+- [x] Bump Dockerfile base image to `golang:1.26-alpine`
+
 ### v0.8.6 - Toolchain & Dependency Refresh
 
 - [x] Bump Go toolchain to 1.26.2
