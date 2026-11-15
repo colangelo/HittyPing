@@ -18,6 +18,8 @@ just lint          # Run golangci-lint
 just vuln          # Run vulnerability check
 just ci            # Local CI (lint, vuln, test)
 just clean         # Remove binary
+just verify-release  # Download + cosign-verify the latest release (into a temp dir, never the checkout)
+just test-verify   # Check both verify recipes pass and leave the checkout unchanged (network, cosign)
 ```
 
 Or directly with Go:
@@ -85,7 +87,7 @@ HTTPS_PROXY=socks5://host:port hp cloudflare.com  # Via SOCKS5 proxy
 
 ## Architecture
 
-Go application using `spf13/pflag` for POSIX-style CLI flags. Uses latest stable Go (currently 1.26).
+Go application using `spf13/pflag` for POSIX-style CLI flags. Uses latest stable Go (currently 1.27).
 
 Key functions:
 

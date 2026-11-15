@@ -64,10 +64,14 @@ verify-release:
     ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
     BIN="hp-${OS}-${ARCH}"
     BASE_URL="https://github.com/colangelo/HittyPing/releases/latest/download"
-    echo "Downloading ${BIN}..."
-    curl -sLO "${BASE_URL}/${BIN}"
-    curl -sLO "${BASE_URL}/${BIN}.sig"
-    curl -sLO "${BASE_URL}/${BIN}.pem"
+    # just runs recipes in the repo root: download elsewhere, never into the checkout
+    TMP="${TMPDIR:-/tmp}"
+    DIR=$(mktemp -d "${TMP%/}/hp-verify-release.XXXXXX")
+    cd "$DIR"
+    echo "Downloading ${BIN} into ${DIR}..."
+    curl -fsSLO "${BASE_URL}/${BIN}"
+    curl -fsSLO "${BASE_URL}/${BIN}.sig"
+    curl -fsSLO "${BASE_URL}/${BIN}.pem"
     echo "Verifying signature..."
     cosign verify-blob \
       --signature "${BIN}.sig" \
@@ -75,7 +79,8 @@ verify-release:
       --certificate-oidc-issuer https://token.actions.githubusercontent.com \
       --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
       "${BIN}"
-    echo "Verified! Binary: ${BIN}"
+    chmod +x "${BIN}"
+    echo "Verified! Binary: ${DIR}/${BIN}"
 
 # Bump version (major, minor, or patch)
 bump PART="patch":
@@ -104,15 +109,32 @@ verify-installed:
     BIN="hp-${OS}-${ARCH}"
     BASE_URL="https://github.com/colangelo/HittyPing/releases/download/v${VERSION}"
     echo "Found: ${HP_PATH} (v${VERSION})"
+    # Signatures go to a temp dir that is removed even when verification fails
+    TMP="${TMPDIR:-/tmp}"
+    DIR=$(mktemp -d "${TMP%/}/hp-verify-installed.XXXXXX")
+    trap 'rm -rf "$DIR"' EXIT
     echo "Downloading signatures for ${BIN}..."
-    curl -sLO "${BASE_URL}/${BIN}.sig"
-    curl -sLO "${BASE_URL}/${BIN}.pem"
+    curl -fsSL -o "${DIR}/${BIN}.sig" "${BASE_URL}/${BIN}.sig"
+    curl -fsSL -o "${DIR}/${BIN}.pem" "${BASE_URL}/${BIN}.pem"
     echo "Verifying..."
     cosign verify-blob \
-      --signature "${BIN}.sig" \
-      --certificate "${BIN}.pem" \
+      --signature "${DIR}/${BIN}.sig" \
+      --certificate "${DIR}/${BIN}.pem" \
       --certificate-oidc-issuer https://token.actions.githubusercontent.com \
       --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
       "${HP_PATH}"
-    rm -f "${BIN}.sig" "${BIN}.pem"
     echo "Verified! ${HP_PATH} matches signed release v${VERSION}"
+
+# Check that verify-release and verify-installed leave the checkout untouched (needs network, cosign, an installed hp)
+test-verify:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    before=$(git status --porcelain --ignored)
+    out=$(just verify-release 2>&1) || { echo "$out"; echo "FAIL: verify-release exited non-zero"; exit 1; }
+    bin=$(printf '%s\n' "$out" | sed -n 's/^Verified! Binary: //p')
+    [[ -x "$bin" && "$bin" != "$PWD"/* ]] || { echo "$out"; echo "FAIL: binary '$bin' missing or inside the checkout"; exit 1; }
+    "$bin" --skill | grep -q '^name: hp$' || { echo "FAIL: downloaded binary does not print the skill"; exit 1; }
+    just verify-installed >/dev/null 2>&1 || { echo "FAIL: verify-installed exited non-zero"; exit 1; }
+    after=$(git status --porcelain --ignored)
+    [[ "$before" == "$after" ]] || { diff <(echo "$before") <(echo "$after"); echo "FAIL: the checkout changed"; exit 1; }
+    echo "PASS: both recipes verified and the checkout is unchanged (binary: $bin)"

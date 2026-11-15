@@ -74,6 +74,12 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.9 - Security Refresh
+
+- [x] Container image on Go 1.27.4; go directive 1.27.4; x/crypto v0.59.0
+- [x] Scorecard action v2.5.0 (gcr.io image pull was failing)
+- [x] Verify recipes download into a temp dir
+
 ### v0.8.8 - Fixed-Rate Sending & Agent Skill
 
 - [x] Fixed-rate sending like ping: one glyph per interval, also during outages; time-based loss %
