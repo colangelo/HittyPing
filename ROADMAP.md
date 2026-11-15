@@ -74,6 +74,13 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.8 - Fixed-Rate Sending & Agent Skill
+
+- [x] Fixed-rate sending like ping: one glyph per interval, also during outages; time-based loss %
+- [x] `--fail-style dots|bang` to choose the braille failure marker (purple `⣿` or the pre-0.8.7 red `!`)
+- [x] `--skill` prints the embedded agent skill
+- [x] Fix `host:port` targets failing the startup DNS check
+
 ### v0.8.7 - Braille Failure Cells
 
 - [x] Braille mode: failures render as a full purple cell instead of `!`
