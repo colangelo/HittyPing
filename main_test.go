@@ -117,9 +117,9 @@ func TestGetURLForProto_ReturnsHTTPSForProtoHTTP3(t *testing.T) {
 }
 
 func TestGetURLForProto_HandlesIPv4Address(t *testing.T) {
-	result := getURLForProto("192.168.1.1", protoHTTPS)
+	result := getURLForProto("192.0.2.1", protoHTTPS)
 
-	expected := "https://192.168.1.1"
+	expected := "https://192.0.2.1"
 	if result != expected {
 		t.Errorf("getURLForProto() = %q; want %q", result, expected)
 	}
@@ -503,7 +503,7 @@ func TestGetURLForProto_TableDriven(t *testing.T) {
 		{"http3-simple", "example.com", protoHTTP3, "https://example.com"},
 		{"http1-with-port", "example.com:8080", protoHTTP1, "http://example.com:8080"},
 		{"https-with-port", "example.com:443", protoHTTPS, "https://example.com:443"},
-		{"http1-ipv4", "192.168.1.1", protoHTTP1, "http://192.168.1.1"},
+		{"http1-ipv4", "192.0.2.1", protoHTTP1, "http://192.0.2.1"},
 		{"https-ipv4", "8.8.8.8", protoHTTPS, "https://8.8.8.8"},
 		{"https-ipv6", "[::1]", protoHTTPS, "https://[::1]"},
 		{"https-ipv6-full", "[2001:4860:4860::8888]", protoHTTPS, "https://[2001:4860:4860::8888]"},
@@ -624,7 +624,7 @@ func TestFmtDuration_TableDriven(t *testing.T) {
 func TestRecordPeriod(t *testing.T) {
 	t.Run("first-success-creates-up", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)
+		recordPeriod(s, true, time.Time{})
 		if s.currentPeriod == nil {
 			t.Fatal("currentPeriod is nil")
 		}
@@ -641,7 +641,7 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("first-failure-creates-down", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, false)
+		recordPeriod(s, false, time.Time{})
 		if s.currentPeriod == nil {
 			t.Fatal("currentPeriod is nil")
 		}
@@ -655,9 +655,9 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("consecutive-same-increments", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)
-		recordPeriod(s, true)
-		recordPeriod(s, true)
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, true, time.Time{})
 		if s.currentPeriod.count != 3 {
 			t.Errorf("count = %d; want 3", s.currentPeriod.count)
 		}
@@ -668,9 +668,9 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("transition-closes-period", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)
-		recordPeriod(s, true)
-		recordPeriod(s, false) // transition
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, false, time.Time{}) // transition
 		if len(s.periods) != 1 {
 			t.Fatalf("periods = %d; want 1", len(s.periods))
 		}
@@ -690,12 +690,12 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("multiple-transitions", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)  // UP
-		recordPeriod(s, true)  // UP (2)
-		recordPeriod(s, false) // DOWN
-		recordPeriod(s, false) // DOWN (2)
-		recordPeriod(s, false) // DOWN (3)
-		recordPeriod(s, true)  // UP again
+		recordPeriod(s, true, time.Time{})  // UP
+		recordPeriod(s, true, time.Time{})  // UP (2)
+		recordPeriod(s, false, time.Time{}) // DOWN
+		recordPeriod(s, false, time.Time{}) // DOWN (2)
+		recordPeriod(s, false, time.Time{}) // DOWN (3)
+		recordPeriod(s, true, time.Time{})  // UP again
 		if len(s.periods) != 2 {
 			t.Fatalf("periods = %d; want 2", len(s.periods))
 		}
@@ -712,8 +712,8 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("close-periods", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)
-		recordPeriod(s, false)
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, false, time.Time{})
 		closePeriods(s)
 		if len(s.periods) != 2 {
 			t.Fatalf("periods = %d; want 2", len(s.periods))
@@ -768,5 +768,75 @@ func TestGetEnvInt_TableDriven(t *testing.T) {
 					envKey, tc.envValue, tc.def, result, tc.expected)
 			}
 		})
+	}
+}
+
+// =============================================================================
+// Braille failure styles (--fail-style)
+// =============================================================================
+
+func withFailStyle(fs failStyle, fn func()) {
+	orig := brailleFail
+	brailleFail = fs
+	defer func() { brailleFail = orig }()
+	fn()
+}
+
+func TestGetBrailleChar_FailStyles(t *testing.T) {
+	const fail = time.Duration(-1)
+	ok := 50 * time.Millisecond
+	slow := 500 * time.Millisecond
+	tests := []struct {
+		name        string
+		style       failStyle
+		left, right time.Duration
+		want        string
+	}{
+		{"dots-both-fail", failDots, fail, fail, purple + bold + "⣿" + reset},
+		{"dots-left-fail", failDots, fail, ok, purple + bold + "⣿" + reset},
+		{"dots-right-fail", failDots, slow, fail, purple + bold + "⣿" + reset},
+		{"bang-both-fail", failBang, fail, fail, red + bold + "!" + reset},
+		{"bang-left-fail-shows-right-only", failBang, fail, ok, green + "⢀" + reset},
+		{"bang-right-fail-shows-left-only", failBang, slow, fail, red + "⡇" + reset},
+		{"bang-no-fail-unchanged", failBang, ok, ok, green + "⣀" + reset},
+		{"dots-no-fail-unchanged", failDots, ok, ok, green + "⣀" + reset},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			withThresholds(0, 150, 400, func() {
+				withFailStyle(tc.style, func() {
+					if got := getBrailleChar(tc.left, tc.right); got != tc.want {
+						t.Errorf("getBrailleChar(%v, %v) = %q; want %q", tc.left, tc.right, got, tc.want)
+					}
+				})
+			})
+		})
+	}
+}
+
+func TestParseFailStyle(t *testing.T) {
+	for in, want := range map[string]failStyle{"dots": failDots, "bang": failBang, "BANG": failBang} {
+		got, err := parseFailStyle(in)
+		if err != nil || got != want {
+			t.Errorf("parseFailStyle(%q) = %v, %v; want %v, nil", in, got, err, want)
+		}
+	}
+	if _, err := parseFailStyle("purple"); err == nil {
+		t.Error("parseFailStyle(\"purple\") returned no error")
+	}
+}
+
+func TestHostname(t *testing.T) {
+	for in, want := range map[string]string{
+		"example.com":      "example.com",
+		"example.com:8443": "example.com",
+		"127.0.0.1:18555":  "127.0.0.1",
+		"1.1.1.1":          "1.1.1.1",
+		"[::1]":            "::1",
+		"[::1]:8080":       "::1",
+	} {
+		if got := hostname(in); got != want {
+			t.Errorf("hostname(%q) = %q; want %q", in, got, want)
+		}
 	}
 }

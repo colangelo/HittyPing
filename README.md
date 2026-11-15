@@ -98,6 +98,8 @@ hp -3 dns.google                # HTTP/3 (QUIC)
 hp -3 -d example.com            # HTTP/3 with auto-downgrade on failures
 hp -3 -D example.com            # Auto-downgrade including plain HTTP
 hp -b cloudflare.com            # Braille mode (2x density)
+hp -b --fail-style bang site    # Braille failures as red ! (pre-0.8.7 look)
+hp --skill                      # Print the agent skill (usage guide for AI agents)
 hp -g 50 -y 100 cloudflare.com  # Custom thresholds (ms)
 HTTPS_PROXY=socks5://host:1080 hp site  # Via SOCKS5 proxy
 HTTP_PROXY=http://proxy:8080 hp -1 site # Via HTTP proxy
@@ -112,6 +114,7 @@ HTTP_PROXY=http://proxy:8080 hp -1 site # Via HTTP proxy
 | `-j` | `--jitter` | | 0 | Max random jitter to add to interval (e.g., 200ms, 3s) |
 | `-t` | `--timeout` | | 5s | Request timeout |
 | `-b` | `--braille` | | false | Use braille visualization (2x density) |
+| | `--fail-style` | `HP_FAIL_STYLE` | dots | Braille failure marker: `dots` (purple ⣿) or `bang` (red !, the look up to 0.8.6) |
 | | `--legend` | | false | Show legend (hidden by default) |
 | | `--noheader` | | false | Hide header line |
 | `-q` | `--quiet` | | false | Hide header and legend |
@@ -126,6 +129,7 @@ HTTP_PROXY=http://proxy:8080 hp -1 site # Via HTTP proxy
 | `-d` | `--downgrade` | | false | Auto-downgrade on 3 failures (secure only) |
 | `-D` | `--downgrade-insecure` | | false | Auto-downgrade including plain HTTP |
 | `-v` | `--version` | | | Show version |
+| | `--skill` | | | Print the agent skill (how an AI agent should run and read hp) |
 | `-h` | `--help` | | | Show help |
 
 ## Visual Guide
@@ -136,6 +140,8 @@ HTTP_PROXY=http://proxy:8080 hp -1 site # Via HTTP proxy
 - **Red** ( ! ): Request failed
 
 Block height scales within each color zone based on latency.
+
+In braille mode (`-b`) a cell holds two requests, and a cell with a failure is a purple `⣿`. `--fail-style bang` brings back the look up to 0.8.6: a red `!` when both requests failed, and a blank column when one did.
 
 ## Platform Support
 
