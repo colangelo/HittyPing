@@ -33,6 +33,11 @@ fmt:
 lint:
     go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest run
 
+# Fuzz the input parsers (30s each)
+fuzz:
+    go test -run '^$' -fuzz '^FuzzTruncateToWidth$' -fuzztime 30s .
+    go test -run '^$' -fuzz '^FuzzHostname$' -fuzztime 30s .
+
 # Run vulnerability check
 vuln:
     go run golang.org/x/vuln/cmd/govulncheck@latest ./...
