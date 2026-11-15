@@ -295,8 +295,7 @@ func main() {
 	// Skipped when a proxy is configured: the proxy resolves the host
 	// (e.g. socks5h), so the local resolver may legitimately fail.
 	resolvedIP := ""
-	// Strip brackets from IPv6 for parsing and display
-	hostForLookup := strings.TrimPrefix(strings.TrimSuffix(displayURL, "]"), "[")
+	hostForLookup := hostname(displayURL)
 	if ip := net.ParseIP(hostForLookup); ip == nil && !proxyConfigured() {
 		ips, err := net.LookupHost(hostForLookup)
 		if err != nil {
@@ -487,6 +486,15 @@ func measureRTT(client *http.Client, url string, protoLevel int) (time.Duration,
 	}
 
 	return elapsed, nil
+}
+
+// hostname strips the port and IPv6 brackets from a target, leaving the
+// name to resolve: "example.com:8443" → "example.com", "[::1]:80" → "::1".
+func hostname(target string) string {
+	if h, _, err := net.SplitHostPort(target); err == nil {
+		return h
+	}
+	return strings.TrimPrefix(strings.TrimSuffix(target, "]"), "[")
 }
 
 // proxyConfigured reports whether any HTTP/HTTPS proxy env var is set.

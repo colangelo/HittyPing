@@ -14,6 +14,10 @@ All notable changes to hp (hittyping) will be documented in this file.
 - Fixed-rate sending, as ping does: a request starts every `--interval` whatever earlier ones are doing, so one glyph is one interval of wall time during outages too. Before, a timed-out request blocked the next, and with the defaults each failure glyph stood for 6 s (12 s per braille cell) against 1 s while up. Loss % is now the share of time the host did not answer. Results are drawn in send order; up to timeout ÷ interval requests can be in flight
 - Timeline periods start at the send time of their first request
 
+### Fixed
+
+- `host:port` targets (`hp example.com:8443`, `hp 127.0.0.1:8080`) no longer fail the startup DNS check with "cannot resolve"
+
 ## [0.8.7] - 2026-11-08
 
 ### Security

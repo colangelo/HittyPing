@@ -825,3 +825,18 @@ func TestParseFailStyle(t *testing.T) {
 		t.Error("parseFailStyle(\"purple\") returned no error")
 	}
 }
+
+func TestHostname(t *testing.T) {
+	for in, want := range map[string]string{
+		"example.com":      "example.com",
+		"example.com:8443": "example.com",
+		"127.0.0.1:18555":  "127.0.0.1",
+		"1.1.1.1":          "1.1.1.1",
+		"[::1]":            "::1",
+		"[::1]:8080":       "::1",
+	} {
+		if got := hostname(in); got != want {
+			t.Errorf("hostname(%q) = %q; want %q", in, got, want)
+		}
+	}
+}
