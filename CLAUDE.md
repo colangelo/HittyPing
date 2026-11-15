@@ -87,7 +87,7 @@ HTTPS_PROXY=socks5://host:port hp cloudflare.com  # Via SOCKS5 proxy
 
 ## Architecture
 
-Go application using `spf13/pflag` for POSIX-style CLI flags. Uses latest stable Go (currently 1.26).
+Go application using `spf13/pflag` for POSIX-style CLI flags. Uses latest stable Go (currently 1.27).
 
 Key functions:
 

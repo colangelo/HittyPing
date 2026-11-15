@@ -2,6 +2,19 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [Unreleased]
+
+### Security
+
+- Container image builds with Go 1.27.4 (`golang:1.27-alpine`); the pinned 1.26 image was Go 1.26.3, which lacks stdlib fixes such as GO-2026-5026 and GO-2026-5942 (fixed in 1.26.6). Release binaries were already built with the latest stable Go
+- `go` directive 1.26.2 → 1.27.4, so scanners no longer read the stdlib as vulnerable
+- Bump `golang.org/x/crypto` 0.58.0 → 0.59.0 (GO-2026-5932, not reachable from hp), `x/sys` 0.50.0, `x/text` 0.44.0
+- CI: `ossf/scorecard-action` v2.4.0 → v2.5.0; v2.4.0 pulls its image from gcr.io, which now fails, so Scorecard had not run since before v0.8.7 and showed fixed advisories
+
+### Changed
+
+- `just verify-release` and `just verify-installed` download into a temp dir instead of the checkout; `just test-verify` checks it
+
 ## [0.8.8] - 2026-11-15
 
 ### Added
