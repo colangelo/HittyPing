@@ -770,3 +770,58 @@ func TestGetEnvInt_TableDriven(t *testing.T) {
 		})
 	}
 }
+
+// =============================================================================
+// Braille failure styles (--fail-style)
+// =============================================================================
+
+func withFailStyle(fs failStyle, fn func()) {
+	orig := brailleFail
+	brailleFail = fs
+	defer func() { brailleFail = orig }()
+	fn()
+}
+
+func TestGetBrailleChar_FailStyles(t *testing.T) {
+	const fail = time.Duration(-1)
+	ok := 50 * time.Millisecond
+	slow := 500 * time.Millisecond
+	tests := []struct {
+		name        string
+		style       failStyle
+		left, right time.Duration
+		want        string
+	}{
+		{"dots-both-fail", failDots, fail, fail, purple + bold + "⣿" + reset},
+		{"dots-left-fail", failDots, fail, ok, purple + bold + "⣿" + reset},
+		{"dots-right-fail", failDots, slow, fail, purple + bold + "⣿" + reset},
+		{"bang-both-fail", failBang, fail, fail, red + bold + "!" + reset},
+		{"bang-left-fail-shows-right-only", failBang, fail, ok, green + "⢀" + reset},
+		{"bang-right-fail-shows-left-only", failBang, slow, fail, red + "⡇" + reset},
+		{"bang-no-fail-unchanged", failBang, ok, ok, green + "⣀" + reset},
+		{"dots-no-fail-unchanged", failDots, ok, ok, green + "⣀" + reset},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			withThresholds(0, 150, 400, func() {
+				withFailStyle(tc.style, func() {
+					if got := getBrailleChar(tc.left, tc.right); got != tc.want {
+						t.Errorf("getBrailleChar(%v, %v) = %q; want %q", tc.left, tc.right, got, tc.want)
+					}
+				})
+			})
+		})
+	}
+}
+
+func TestParseFailStyle(t *testing.T) {
+	for in, want := range map[string]failStyle{"dots": failDots, "bang": failBang, "BANG": failBang} {
+		got, err := parseFailStyle(in)
+		if err != nil || got != want {
+			t.Errorf("parseFailStyle(%q) = %v, %v; want %v, nil", in, got, err, want)
+		}
+	}
+	if _, err := parseFailStyle("purple"); err == nil {
+		t.Error("parseFailStyle(\"purple\") returned no error")
+	}
+}

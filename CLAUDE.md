@@ -50,6 +50,8 @@ hp -3 cloudflare.com                  # Use HTTP/3 (or --http3)
 hp -3 -d example.com                  # HTTP/3 with auto-downgrade on failures
 hp -3 -D example.com                  # Auto-downgrade including plain HTTP
 hp -b cloudflare.com                  # Braille mode (2x density)
+hp -b --fail-style bang cloudflare.com  # Braille failures as red ! (up to 0.8.6 look)
+hp --skill                            # Print the agent skill (skills/hp/SKILL.md, embedded)
 hp -g 100 -y 200 8.8.8.8              # Custom thresholds (or --green, --yellow)
 HTTPS_PROXY=socks5://host:port hp cloudflare.com  # Via SOCKS5 proxy
 ```
@@ -63,6 +65,7 @@ HTTPS_PROXY=socks5://host:port hp cloudflare.com  # Via SOCKS5 proxy
 | `-j` | `--jitter` | | 0 | Max random jitter to add to interval (e.g., 200ms, 3s) |
 | `-t` | `--timeout` | | 5s | Request timeout |
 | `-b` | `--braille` | | false | Use braille visualization (2x density) |
+| | `--fail-style` | `HP_FAIL_STYLE` | dots | Braille failure marker: `dots` (purple ⣿) or `bang` (red !, up to 0.8.6) |
 | | `--legend` | | false | Show legend line |
 | | `--noheader` | | false | Hide header line |
 | `-q` | `--quiet` | | false | Hide header and legend |
@@ -77,6 +80,7 @@ HTTPS_PROXY=socks5://host:port hp cloudflare.com  # Via SOCKS5 proxy
 | `-d` | `--downgrade` | | false | Auto-downgrade on 3 failures (secure only) |
 | `-D` | `--downgrade-insecure` | | false | Auto-downgrade including plain HTTP |
 | `-v` | `--version` | | | Show version and exit |
+| | `--skill` | | | Print the agent skill and exit |
 | `-h` | `--help` | | | Show help and exit |
 
 ## Architecture
@@ -91,6 +95,13 @@ Key functions:
 - `getBlock()` - Maps latency to Unicode block + color
 - `printDisplay()` - Live bar and stats rendering with ANSI cursor control
 - `printFinal()` - Summary on Ctrl+C
+- `defineFlags()` - Every CLI flag, on a given FlagSet (tests enumerate it)
+
+### Agent skill
+
+`skills/hp/SKILL.md` is the agent-facing usage guide, embedded in the binary and printed by `hp --skill`.
+`TestSkillDocumentsEveryFlag` fails when a flag in `defineFlags()` is missing from it, so add or change a flag and
+its skill row in the same commit.
 
 ## Visual Output
 

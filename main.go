@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	_ "embed"
 	"fmt"
 	"io"
 	"log"
@@ -24,19 +25,22 @@ var displayMu sync.Mutex
 
 const version = "0.8.7"
 
+//go:embed skills/hp/SKILL.md
+var skillText string
+
 const (
 	// ANSI colors
-	green   = "\033[32m"
-	yellow  = "\033[33m"
-	red     = "\033[31m"
-	purple  = "\033[35m"
-	gray    = "\033[90m"
-	bold    = "\033[1m"
-	reset   = "\033[0m"
-	clearLn = "\033[K"
-	up      = "\033[A"
-	down    = "\033[B"
-	col0    = "\033[0G"
+	green      = "\033[32m"
+	yellow     = "\033[33m"
+	red        = "\033[31m"
+	purple     = "\033[35m"
+	gray       = "\033[90m"
+	bold       = "\033[1m"
+	reset      = "\033[0m"
+	clearLn    = "\033[K"
+	up         = "\033[A"
+	down       = "\033[B"
+	col0       = "\033[0G"
 	hideCur    = "\033[?25l"
 	showCur    = "\033[?25h"
 	steadyCur  = "\033[2 q" // DECSCUSR: steady block cursor
@@ -73,6 +77,26 @@ var (
 	greenThreshold  int64 = 150
 	yellowThreshold int64 = 400
 )
+
+// failStyle selects how a failed request is drawn in braille mode.
+// Block mode always draws a red "!".
+type failStyle int
+
+const (
+	failDots failStyle = iota // purple full cell ⣿ for any pair holding a failure (0.8.7+)
+	failBang                  // red "!" for two failures, blank side for one (up to 0.8.6)
+)
+
+var failStyleNames = map[string]failStyle{"dots": failDots, "bang": failBang}
+
+var brailleFail = failDots
+
+func parseFailStyle(name string) (failStyle, error) {
+	if fs, ok := failStyleNames[strings.ToLower(name)]; ok {
+		return fs, nil
+	}
+	return 0, fmt.Errorf("invalid fail style %q (want dots or bang)", name)
+}
 
 // getEnvInt returns the env var value as int64, or the default if not set/invalid
 func getEnvInt(key string, def int64) int64 {
@@ -129,33 +153,57 @@ func closePeriods(s *stats) {
 	}
 }
 
+type options struct {
+	interval, jitter, timeout        *time.Duration
+	count                            *int
+	showLegend, noHeader, useBraille *bool
+	quiet, silent, insecure          *bool
+	useHTTP1, useHTTP2, useHTTP3     *bool
+	downgrade, downgradeInsecure     *bool
+	showVersion, showSkill           *bool
+	minFlag, greenFlag, yellowFlag   *int64
+	failStyle                        *string
+}
+
+func defineFlags(fs *flag.FlagSet) *options {
+	return &options{
+		interval:          fs.DurationP("interval", "i", time.Second, "interval between requests"),
+		jitter:            fs.DurationP("jitter", "j", 0, "max random jitter to add to interval (e.g., 200ms, 3s)"),
+		timeout:           fs.DurationP("timeout", "t", 5*time.Second, "request timeout"),
+		count:             fs.IntP("count", "c", 0, "number of requests (0 = unlimited)"),
+		showLegend:        fs.Bool("legend", false, "show the legend line"),
+		noHeader:          fs.Bool("noheader", false, "hide the header line"),
+		useBraille:        fs.BoolP("braille", "b", false, "use braille visualization (2x density)"),
+		failStyle:         fs.String("fail-style", "", "braille failure marker: dots (purple ⣿) or bang (red !, up to 0.8.6) (env: HP_FAIL_STYLE)"),
+		quiet:             fs.BoolP("quiet", "q", false, "hide header and legend"),
+		silent:            fs.BoolP("silent", "Q", false, "hide header, legend, and final stats"),
+		minFlag:           fs.Int64P("min", "m", 0, "min latency baseline in ms (env: HP_MIN)"),
+		greenFlag:         fs.Int64P("green", "g", 0, "green threshold in ms (env: HP_GREEN)"),
+		yellowFlag:        fs.Int64P("yellow", "y", 0, "yellow threshold in ms (env: HP_YELLOW)"),
+		insecure:          fs.BoolP("insecure", "k", false, "skip TLS certificate verification"),
+		useHTTP1:          fs.BoolP("http", "1", false, "use plain HTTP/1.1"),
+		useHTTP2:          fs.BoolP("http2", "2", false, "force HTTP/2 (fail if not negotiated)"),
+		useHTTP3:          fs.BoolP("http3", "3", false, "use HTTP/3 (QUIC)"),
+		downgrade:         fs.BoolP("downgrade", "d", false, "auto-downgrade protocol on failures (secure only)"),
+		downgradeInsecure: fs.BoolP("downgrade-insecure", "D", false, "auto-downgrade including plain HTTP"),
+		showVersion:       fs.BoolP("version", "v", false, "show version and exit"),
+		showSkill:         fs.Bool("skill", false, "print the agent skill (how to use hp) and exit"),
+	}
+}
+
 func main() {
 	// Silence quic-go UDP buffer warnings that corrupt terminal display
 	log.SetOutput(io.Discard)
 
-	interval := flag.DurationP("interval", "i", time.Second, "interval between requests")
-	jitter := flag.DurationP("jitter", "j", 0, "max random jitter to add to interval (e.g., 200ms, 3s)")
-	timeout := flag.DurationP("timeout", "t", 5*time.Second, "request timeout")
-	count := flag.IntP("count", "c", 0, "number of requests (0 = unlimited)")
-	showLegend := flag.Bool("legend", false, "show the legend line")
-	noHeader := flag.Bool("noheader", false, "hide the header line")
-	useBraille := flag.BoolP("braille", "b", false, "use braille visualization (2x density)")
-	quiet := flag.BoolP("quiet", "q", false, "hide header and legend")
-	silent := flag.BoolP("silent", "Q", false, "hide header, legend, and final stats")
-	minFlag := flag.Int64P("min", "m", 0, "min latency baseline in ms (env: HP_MIN)")
-	greenFlag := flag.Int64P("green", "g", 0, "green threshold in ms (env: HP_GREEN)")
-	yellowFlag := flag.Int64P("yellow", "y", 0, "yellow threshold in ms (env: HP_YELLOW)")
-	insecure := flag.BoolP("insecure", "k", false, "skip TLS certificate verification")
-	useHTTP1 := flag.BoolP("http", "1", false, "use plain HTTP/1.1")
-	useHTTP2 := flag.BoolP("http2", "2", false, "force HTTP/2 (fail if not negotiated)")
-	useHTTP3 := flag.BoolP("http3", "3", false, "use HTTP/3 (QUIC)")
-	downgrade := flag.BoolP("downgrade", "d", false, "auto-downgrade protocol on failures (secure only)")
-	downgradeInsecure := flag.BoolP("downgrade-insecure", "D", false, "auto-downgrade including plain HTTP")
-	showVersion := flag.BoolP("version", "v", false, "show version and exit")
+	o := defineFlags(flag.CommandLine)
 	flag.Parse()
 
-	if *showVersion {
+	if *o.showVersion {
 		fmt.Printf("hp (hittyping) version %s\n", version)
+		os.Exit(0)
+	}
+	if *o.showSkill {
+		fmt.Print(skillText)
 		os.Exit(0)
 	}
 
@@ -163,14 +211,27 @@ func main() {
 	minLatency = getEnvInt("HP_MIN", minLatency)
 	greenThreshold = getEnvInt("HP_GREEN", greenThreshold)
 	yellowThreshold = getEnvInt("HP_YELLOW", yellowThreshold)
-	if *minFlag > 0 {
-		minLatency = *minFlag
+	if *o.minFlag > 0 {
+		minLatency = *o.minFlag
 	}
-	if *greenFlag > 0 {
-		greenThreshold = *greenFlag
+	if *o.greenFlag > 0 {
+		greenThreshold = *o.greenFlag
 	}
-	if *yellowFlag > 0 {
-		yellowThreshold = *yellowFlag
+	if *o.yellowFlag > 0 {
+		yellowThreshold = *o.yellowFlag
+	}
+
+	styleName := os.Getenv("HP_FAIL_STYLE")
+	if *o.failStyle != "" {
+		styleName = *o.failStyle
+	}
+	if styleName != "" {
+		fs, err := parseFailStyle(styleName)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error:", err)
+			os.Exit(1)
+		}
+		brailleFail = fs
 	}
 
 	// Extract host (without scheme) for building URLs dynamically
@@ -207,7 +268,7 @@ func main() {
 		}
 	}
 
-	s := &stats{min: time.Hour, braille: *useBraille}
+	s := &stats{min: time.Hour, braille: *o.useBraille}
 
 	// Disable terminal input processing to prevent keypresses from corrupting
 	// the display (echo, VDISCARD, VREPRINT, etc.).
@@ -236,7 +297,7 @@ func main() {
 	go func() {
 		<-sigCh
 		closePeriods(s)
-		if !*silent {
+		if !*o.silent {
 			printFinal(displayURL, s)
 		}
 		cleanup()
@@ -245,13 +306,13 @@ func main() {
 
 	// Validate protocol flags (mutually exclusive)
 	protoCount := 0
-	if *useHTTP1 {
+	if *o.useHTTP1 {
 		protoCount++
 	}
-	if *useHTTP2 {
+	if *o.useHTTP2 {
 		protoCount++
 	}
-	if *useHTTP3 {
+	if *o.useHTTP3 {
 		protoCount++
 	}
 	if protoCount > 1 {
@@ -261,20 +322,20 @@ func main() {
 
 	// Determine initial protocol level
 	currentProto := protoHTTPS
-	if *useHTTP1 {
+	if *o.useHTTP1 {
 		currentProto = protoHTTP1
-	} else if *useHTTP2 {
+	} else if *o.useHTTP2 {
 		currentProto = protoHTTP2
-	} else if *useHTTP3 {
+	} else if *o.useHTTP3 {
 		currentProto = protoHTTP3
 	}
 
 	// Determine minimum protocol level for downgrade
 	minProto := protoHTTPS // secure only by default
-	if *downgradeInsecure {
+	if *o.downgradeInsecure {
 		minProto = protoHTTP1
 	}
-	canDowngrade := *downgrade || *downgradeInsecure
+	canDowngrade := *o.downgrade || *o.downgradeInsecure
 
 	// Print header
 	printHeader := func() {
@@ -286,13 +347,17 @@ func main() {
 			fmt.Printf("%sHittyPing (v%s) %s%s %s(%s)%s\n", gray, version, reset+bold, displayURL, reset+gray, protoNames[currentProto], reset)
 		}
 	}
-	if !*noHeader && !*quiet && !*silent {
+	if !*o.noHeader && !*o.quiet && !*o.silent {
 		printHeader()
 	}
-	if *showLegend && !*quiet && !*silent {
-		if *useBraille {
-			fmt.Printf("%sLegend: %s⡀⡄%s<%dms %s⡆%s<%dms %s⡇%s>=%dms %s%s⣿%sfail %s(2x density)%s\n",
-				gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, purple, bold, reset, gray, reset)
+	if *o.showLegend && !*o.quiet && !*o.silent {
+		if *o.useBraille {
+			failColor, failGlyph := purple, "⣿"
+			if brailleFail == failBang {
+				failColor, failGlyph = red, "!"
+			}
+			fmt.Printf("%sLegend: %s⡀⡄%s<%dms %s⡆%s<%dms %s⡇%s>=%dms %s%s%s%sfail %s(2x density)%s\n",
+				gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, failColor, bold, failGlyph, reset, gray, reset)
 		} else {
 			fmt.Printf("%sLegend: %s▁▂▃%s<%dms %s▄▅%s<%dms %s▆▇█%s>=%dms %s%s!%sfail%s\n",
 				gray, green, reset, greenThreshold, yellow, reset, yellowThreshold, red, reset, yellowThreshold, red, bold, reset, reset)
@@ -303,7 +368,7 @@ func main() {
 
 	// Create HTTP client
 	url := getURLForProto(host, currentProto)
-	client := createClient(currentProto, *timeout, *insecure)
+	client := createClient(currentProto, *o.timeout, *o.insecure)
 
 	consecutiveFailures := 0
 	requestNum := 0
@@ -345,7 +410,7 @@ func main() {
 
 					// Test this protocol silently
 					testURL := getURLForProto(host, candidateProto)
-					testClient := createClient(candidateProto, *timeout, *insecure)
+					testClient := createClient(candidateProto, *o.timeout, *o.insecure)
 					_, testErr := measureRTT(testClient, testURL, candidateProto)
 					if testErr == nil {
 						// Found working protocol
@@ -363,7 +428,7 @@ func main() {
 
 					// Print downgrade message and update header
 					printDisplay(s)
-					if !*noHeader && !*quiet && !*silent {
+					if !*o.noHeader && !*o.quiet && !*o.silent {
 						fmt.Printf("\n%s↓ Downgrading to %s (3 initial failures)%s\n", yellow, protoNames[currentProto], reset)
 						printHeader()
 						fmt.Println() // Reserve stats line
@@ -402,17 +467,17 @@ func main() {
 		}
 		printDisplay(s)
 		requestNum++
-		if *count > 0 && requestNum >= *count {
+		if *o.count > 0 && requestNum >= *o.count {
 			closePeriods(s)
-			if !*silent {
+			if !*o.silent {
 				printFinal(displayURL, s)
 			}
 			cleanup()
 			os.Exit(0)
 		}
-		sleepDuration := *interval
-		if *jitter > 0 {
-			sleepDuration += time.Duration(rand.Int63n(int64(*jitter)))
+		sleepDuration := *o.interval
+		if *o.jitter > 0 {
+			sleepDuration += time.Duration(rand.Int63n(int64(*o.jitter)))
 		}
 		time.Sleep(sleepDuration)
 	}
@@ -529,10 +594,15 @@ func getBrailleChar(leftRTT, rightRTT time.Duration) string {
 	leftHeight := getBrailleHeight(leftRTT)
 	rightHeight := getBrailleHeight(rightRTT)
 
-	// Any failure in the pair renders as a full purple cell (⣿).
-	// A failure dominates the slot — the paired success is dropped visually.
 	if leftHeight < 0 || rightHeight < 0 {
-		return purple + bold + "⣿" + reset
+		if brailleFail == failDots {
+			return purple + bold + "⣿" + reset
+		}
+		if leftHeight < 0 && rightHeight < 0 {
+			return red + bold + "!" + reset
+		}
+		leftHeight = max(leftHeight, 0)
+		rightHeight = max(rightHeight, 0)
 	}
 
 	// Build braille character

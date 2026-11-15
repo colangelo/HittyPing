@@ -2,6 +2,13 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- `--skill` prints the agent skill (`skills/hp/SKILL.md`, embedded): how an AI agent should run hp bounded and read its output; a test fails when a flag is missing from it
+- `--fail-style dots|bang` (env `HP_FAIL_STYLE`) picks the braille failure marker: `dots` is the purple `⣿` of 0.8.7 (default), `bang` restores the red `!` of 0.8.6 and earlier
+
 ## [0.8.7] - 2026-11-08
 
 ### Security
