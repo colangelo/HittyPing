@@ -624,7 +624,7 @@ func TestFmtDuration_TableDriven(t *testing.T) {
 func TestRecordPeriod(t *testing.T) {
 	t.Run("first-success-creates-up", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)
+		recordPeriod(s, true, time.Time{})
 		if s.currentPeriod == nil {
 			t.Fatal("currentPeriod is nil")
 		}
@@ -641,7 +641,7 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("first-failure-creates-down", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, false)
+		recordPeriod(s, false, time.Time{})
 		if s.currentPeriod == nil {
 			t.Fatal("currentPeriod is nil")
 		}
@@ -655,9 +655,9 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("consecutive-same-increments", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)
-		recordPeriod(s, true)
-		recordPeriod(s, true)
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, true, time.Time{})
 		if s.currentPeriod.count != 3 {
 			t.Errorf("count = %d; want 3", s.currentPeriod.count)
 		}
@@ -668,9 +668,9 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("transition-closes-period", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)
-		recordPeriod(s, true)
-		recordPeriod(s, false) // transition
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, false, time.Time{}) // transition
 		if len(s.periods) != 1 {
 			t.Fatalf("periods = %d; want 1", len(s.periods))
 		}
@@ -690,12 +690,12 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("multiple-transitions", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)  // UP
-		recordPeriod(s, true)  // UP (2)
-		recordPeriod(s, false) // DOWN
-		recordPeriod(s, false) // DOWN (2)
-		recordPeriod(s, false) // DOWN (3)
-		recordPeriod(s, true)  // UP again
+		recordPeriod(s, true, time.Time{})  // UP
+		recordPeriod(s, true, time.Time{})  // UP (2)
+		recordPeriod(s, false, time.Time{}) // DOWN
+		recordPeriod(s, false, time.Time{}) // DOWN (2)
+		recordPeriod(s, false, time.Time{}) // DOWN (3)
+		recordPeriod(s, true, time.Time{})  // UP again
 		if len(s.periods) != 2 {
 			t.Fatalf("periods = %d; want 2", len(s.periods))
 		}
@@ -712,8 +712,8 @@ func TestRecordPeriod(t *testing.T) {
 
 	t.Run("close-periods", func(t *testing.T) {
 		s := &stats{}
-		recordPeriod(s, true)
-		recordPeriod(s, false)
+		recordPeriod(s, true, time.Time{})
+		recordPeriod(s, false, time.Time{})
 		closePeriods(s)
 		if len(s.periods) != 2 {
 			t.Fatalf("periods = %d; want 2", len(s.periods))

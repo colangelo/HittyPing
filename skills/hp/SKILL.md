@@ -34,9 +34,9 @@ hp -c 30 -i 500ms -t 2s -q 8.8.8.8   # faster probe, shorter timeout
 10 requests, 9 ok, 1 failed, 10% loss
 round-trip min/avg/max = 21/34/88 ms
 timeline:
-  10:02:18  UP       7s (6 ok)
-  10:02:25  DOWN     6s (1 lost)
-  10:02:31  UP    ← active
+  10:02:18  UP       6s (6 ok)
+  10:02:24  DOWN     1s (1 lost)
+  10:02:25  UP    ← active
 ```
 
 - `round-trip` is printed only when at least one request succeeded.
@@ -60,9 +60,10 @@ The live stats line reads `failed/total (loss%) lost; min/avg/max ms; last: N ms
 - `--fail-style dots` (0.8.7+): any cell holding a failure becomes a purple `⣿`.
   `--fail-style bang` (behavior up to 0.8.6): red `!` only when both requests failed; one failure leaves its column
   blank and the cell shows the other request. Block mode ignores `--fail-style`.
-- Requests are sequential, so a failed request costs the whole `--timeout` plus `--interval`. With the defaults one
-  failure glyph is 6 s of wall time (12 s per braille cell) against about 1 s (2 s) while the host is up. Use the
-  timeline for durations, never the bar's length.
+- One glyph is one `--interval` of wall time, up or down (a braille cell is two). A request starts every interval
+  whatever earlier ones are doing, as ping does, so loss % is the share of time the host did not answer. Glyphs are
+  drawn in send order: during an outage the bar runs up to `--timeout` behind, while up to timeout ÷ interval
+  requests (5 with the defaults) wait in flight.
 - With `-b` and an odd `-c`, the last request is counted in the stats but never drawn.
 
 ## Flags
@@ -70,8 +71,8 @@ The live stats line reads `failed/total (loss%) lost; min/avg/max ms; last: N ms
 | Flag | Default | Meaning |
 |---|---|---|
 | `-c`, `--count` | 0 | requests to send, 0 = until Ctrl+C |
-| `-i`, `--interval` | 1s | pause after each request |
-| `-j`, `--jitter` | 0 | add a random 0..N to each pause |
+| `-i`, `--interval` | 1s | time from one request's start to the next |
+| `-j`, `--jitter` | 0 | add a random 0..N to each interval |
 | `-t`, `--timeout` | 5s | per-request timeout |
 | `-1`, `--http` | | plain HTTP/1.1 (`http://`) |
 | `-2`, `--http2` | | require HTTP/2; a response on another protocol counts as a failure |

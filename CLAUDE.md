@@ -89,6 +89,8 @@ Go application using `spf13/pflag` for POSIX-style CLI flags. Uses latest stable
 
 Key functions:
 
+- `runFixedRate()` - Starts a request every interval (never waits on earlier ones) and hands results over in send order (`schedule.go`)
+- `recordResult()` - Adds one result to stats, timeline and bar
 - `measureRTT()` - HEAD request timing
 - `createClient()` - Creates HTTP client for given protocol level
 - `getURLForProto()` - Returns URL with appropriate scheme for protocol

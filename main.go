@@ -131,10 +131,11 @@ type stats struct {
 	currentPeriod *period       // active period (nil until first request)
 }
 
-func recordPeriod(s *stats, up bool) {
-	now := time.Now()
+// recordPeriod counts a request into the UP/DOWN timeline. at is when the
+// request was sent, so a period starts when its first request went out.
+func recordPeriod(s *stats, up bool, at time.Time) {
 	if s.currentPeriod == nil {
-		s.currentPeriod = &period{up: up, start: now, count: 1}
+		s.currentPeriod = &period{up: up, start: at, count: 1}
 		return
 	}
 	if s.currentPeriod.up == up {
@@ -143,7 +144,46 @@ func recordPeriod(s *stats, up bool) {
 	}
 	// State flipped — close current period and start new one
 	s.periods = append(s.periods, *s.currentPeriod)
-	s.currentPeriod = &period{up: up, start: now, count: 1}
+	s.currentPeriod = &period{up: up, start: at, count: 1}
+}
+
+// recordResult adds a finished request to the stats, the timeline and the bar.
+func recordResult(s *stats, r result) {
+	rtt := r.rtt
+	if r.err != nil {
+		s.failures++
+		rtt = -1
+	} else {
+		s.count++
+		s.total += rtt
+		s.last = rtt
+		s.min = min(s.min, rtt)
+		s.max = max(s.max, rtt)
+	}
+	recordPeriod(s, r.err == nil, r.sentAt)
+
+	switch {
+	case s.braille && s.hasPending:
+		s.blocks = append(s.blocks, getBrailleChar(s.pendingRTT, rtt))
+		s.hasPending = false
+	case s.braille:
+		s.pendingRTT, s.hasPending = rtt, true
+	case r.err != nil:
+		s.blocks = append(s.blocks, red+bold+"!"+reset)
+	default:
+		s.blocks = append(s.blocks, getBlock(rtt))
+	}
+}
+
+// lowerWorkingProto probes each protocol below current, down to minProto,
+// and returns the first one that answers.
+func lowerWorkingProto(host string, current, minProto int, timeout time.Duration, insecure bool) (int, bool) {
+	for p := current - 1; p >= minProto; p-- {
+		if _, err := measureRTT(createClient(p, timeout, insecure), getURLForProto(host, p), p); err == nil {
+			return p, true
+		}
+	}
+	return current, false
 }
 
 func closePeriods(s *stats) {
@@ -370,117 +410,60 @@ func main() {
 	url := getURLForProto(host, currentProto)
 	client := createClient(currentProto, *o.timeout, *o.insecure)
 
-	consecutiveFailures := 0
-	requestNum := 0
-	for {
-		rtt, err := measureRTT(client, url, currentProto)
-		if err != nil {
-			s.failures++
-			consecutiveFailures++
-			recordPeriod(s, false)
-			if s.braille {
-				if s.hasPending {
-					// Pair with pending: pending=left, failure=right
-					s.blocks = append(s.blocks, getBrailleChar(s.pendingRTT, -1))
-					s.hasPending = false
-				} else {
-					// Store failure as pending
-					s.pendingRTT = -1
-					s.hasPending = true
-				}
-			} else {
-				s.blocks = append(s.blocks, red+bold+"!"+reset)
-			}
-
-			// Check for downgrade (only at startup, before first successful ping)
-			if canDowngrade && consecutiveFailures >= 3 && currentProto > minProto && s.count == 0 {
-				// Find a working lower protocol by testing each one
-				candidateProto := currentProto
-				foundWorking := false
-				for candidateProto > minProto {
-					// Try next lower protocol
-					switch candidateProto {
-					case protoHTTP3:
-						candidateProto = protoHTTP2
-					case protoHTTP2:
-						candidateProto = protoHTTPS
-					case protoHTTPS:
-						candidateProto = protoHTTP1
-					}
-
-					// Test this protocol silently
-					testURL := getURLForProto(host, candidateProto)
-					testClient := createClient(candidateProto, *o.timeout, *o.insecure)
-					_, testErr := measureRTT(testClient, testURL, candidateProto)
-					if testErr == nil {
-						// Found working protocol
-						currentProto = candidateProto
-						url = testURL
-						client = testClient
-						foundWorking = true
-						break
-					}
-					// Otherwise continue to even lower protocol
-				}
-
-				if foundWorking {
-					consecutiveFailures = 0
-
-					// Print downgrade message and update header
-					printDisplay(s)
-					if !*o.noHeader && !*o.quiet && !*o.silent {
-						fmt.Printf("\n%s↓ Downgrading to %s (3 initial failures)%s\n", yellow, protoNames[currentProto], reset)
-						printHeader()
-						fmt.Println() // Reserve stats line
-						fmt.Print(up) // Move back to bar line
-					}
-
-					// Skip to next iteration - don't double-print or wait
-					continue
-				}
-			}
-		} else {
-			s.count++
-			consecutiveFailures = 0 // Reset on success
-			recordPeriod(s, true)
-			s.total += rtt
-			s.last = rtt
-			if rtt < s.min {
-				s.min = rtt
-			}
-			if rtt > s.max {
-				s.max = rtt
-			}
-			if s.braille {
-				if s.hasPending {
-					// Pair with pending: pending=left, current=right
-					s.blocks = append(s.blocks, getBrailleChar(s.pendingRTT, rtt))
-					s.hasPending = false
-				} else {
-					// Store as pending
-					s.pendingRTT = rtt
-					s.hasPending = true
-				}
-			} else {
-				s.blocks = append(s.blocks, getBlock(rtt))
-			}
-		}
-		printDisplay(s)
-		requestNum++
-		if *o.count > 0 && requestNum >= *o.count {
-			closePeriods(s)
-			if !*o.silent {
-				printFinal(displayURL, s)
-			}
-			cleanup()
-			os.Exit(0)
-		}
-		sleepDuration := *o.interval
+	gap := func() time.Duration {
+		d := *o.interval
 		if *o.jitter > 0 {
-			sleepDuration += time.Duration(rand.Int63n(int64(*o.jitter)))
+			d += time.Duration(rand.Int63n(int64(*o.jitter)))
 		}
-		time.Sleep(sleepDuration)
+		return d
 	}
+	// Captured when the request starts: a downgrade must not switch the
+	// protocol under requests already in flight.
+	prepare := func() func() result {
+		c, u, p, sentAt := client, url, currentProto, time.Now()
+		return func() result {
+			rtt, err := measureRTT(c, u, p)
+			return result{sentAt: sentAt, proto: p, rtt: rtt, err: err}
+		}
+	}
+
+	consecutiveFailures := 0
+	handle := func(r result) {
+		recordResult(s, r)
+		printDisplay(s)
+		switch {
+		case r.err == nil:
+			consecutiveFailures = 0
+		case r.proto == currentProto:
+			consecutiveFailures++
+		}
+
+		// Downgrade only at startup, before the first success
+		if !canDowngrade || consecutiveFailures < 3 || currentProto <= minProto || s.count > 0 {
+			return
+		}
+		p, ok := lowerWorkingProto(host, currentProto, minProto, *o.timeout, *o.insecure)
+		if !ok {
+			return
+		}
+		currentProto = p
+		url = getURLForProto(host, p)
+		client = createClient(p, *o.timeout, *o.insecure)
+		consecutiveFailures = 0
+		if !*o.noHeader && !*o.quiet && !*o.silent {
+			fmt.Printf("\n%s↓ Downgrading to %s (3 initial failures)%s\n", yellow, protoNames[currentProto], reset)
+			printHeader()
+			fmt.Println() // Reserve stats line
+			fmt.Print(up) // Move back to bar line
+		}
+	}
+
+	runFixedRate(*o.count, gap, prepare, handle)
+	closePeriods(s)
+	if !*o.silent {
+		printFinal(displayURL, s)
+	}
+	cleanup()
 }
 
 func measureRTT(client *http.Client, url string, protoLevel int) (time.Duration, error) {

@@ -9,6 +9,11 @@ All notable changes to hp (hittyping) will be documented in this file.
 - `--skill` prints the agent skill (`skills/hp/SKILL.md`, embedded): how an AI agent should run hp bounded and read its output; a test fails when a flag is missing from it
 - `--fail-style dots|bang` (env `HP_FAIL_STYLE`) picks the braille failure marker: `dots` is the purple `⣿` of 0.8.7 (default), `bang` restores the red `!` of 0.8.6 and earlier
 
+### Changed
+
+- Fixed-rate sending, as ping does: a request starts every `--interval` whatever earlier ones are doing, so one glyph is one interval of wall time during outages too. Before, a timed-out request blocked the next, and with the defaults each failure glyph stood for 6 s (12 s per braille cell) against 1 s while up. Loss % is now the share of time the host did not answer. Results are drawn in send order; up to timeout ÷ interval requests can be in flight
+- Timeline periods start at the send time of their first request
+
 ## [0.8.7] - 2026-11-08
 
 ### Security
