@@ -2,6 +2,20 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.8.10] - 2026-11-15
+
+### Fixed
+
+- `go install github.com/colangelo/HittyPing@latest` works: the module path was `github.com/ac/hp`, which does not match the repository, so the install failed with "module declares its path as". The binary installs as `HittyPing`
+
+### Added
+
+- Go native fuzz tests for the stats-line truncation and the host:port parsing (`just fuzz`)
+
+### Changed
+
+- README: the retired Go Report Card badge is replaced by a Go version badge
+
 ## [0.8.9] - 2026-11-15
 
 ### Security

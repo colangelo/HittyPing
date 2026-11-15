@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://github.com/colangelo/HittyPing/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/colangelo/HittyPing/ci.yml?branch=main" alt="CI"></a>
   <a href="https://github.com/colangelo/HittyPing/releases"><img src="https://img.shields.io/github/v/release/colangelo/HittyPing" alt="Release"></a>
-  <a href="https://goreportcard.com/report/github.com/colangelo/HittyPing"><img src="https://goreportcard.com/badge/github.com/colangelo/HittyPing" alt="Go Report"></a>
+  <a href="go.mod"><img src="https://img.shields.io/github/go-mod/go-version/colangelo/HittyPing" alt="Go version"></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/colangelo/HittyPing"><img src="https://api.scorecard.dev/projects/github.com/colangelo/HittyPing/badge" alt="OpenSSF Scorecard"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
 </p>
@@ -51,7 +51,7 @@ scoop install hp
 ### From source
 
 ```bash
-go install github.com/colangelo/HittyPing@latest
+go install github.com/colangelo/HittyPing@latest   # installs the binary as HittyPing (v0.8.10+)
 
 # Or clone and build
 git clone https://github.com/colangelo/HittyPing.git

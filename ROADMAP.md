@@ -74,6 +74,12 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.10 - go install & Fuzzing
+
+- [x] Module path matches the repository, so `go install github.com/colangelo/HittyPing@latest` works
+- [x] Go native fuzz tests (`just fuzz`)
+- [x] Replace the retired Go Report Card badge
+
 ### v0.8.9 - Security Refresh
 
 - [x] Container image on Go 1.27.4; go directive 1.27.4; x/crypto v0.59.0

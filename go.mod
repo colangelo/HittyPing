@@ -1,4 +1,4 @@
-module github.com/ac/hp
+module github.com/colangelo/HittyPing
 
 go 1.27.4
 

@@ -23,7 +23,7 @@ import (
 // cleanly pause rendering before the process is actually stopped.
 var displayMu sync.Mutex
 
-const version = "0.8.9"
+const version = "0.8.10"
 
 //go:embed skills/hp/SKILL.md
 var skillText string
