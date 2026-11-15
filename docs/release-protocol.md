@@ -123,6 +123,9 @@ The release workflow will:
 # View the release
 command gh release view vX.Y.Z
 
+# Verify the signed binary (downloads into a temp dir and prints its path)
+just verify-release
+
 # Check container image exists
 docker manifest inspect ghcr.io/colangelo/hp:vX.Y.Z
 

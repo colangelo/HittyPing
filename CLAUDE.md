@@ -18,6 +18,8 @@ just lint          # Run golangci-lint
 just vuln          # Run vulnerability check
 just ci            # Local CI (lint, vuln, test)
 just clean         # Remove binary
+just verify-release  # Download + cosign-verify the latest release (into a temp dir, never the checkout)
+just test-verify   # Check both verify recipes pass and leave the checkout unchanged (network, cosign)
 ```
 
 Or directly with Go:
