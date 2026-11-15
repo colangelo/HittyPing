@@ -117,9 +117,9 @@ func TestGetURLForProto_ReturnsHTTPSForProtoHTTP3(t *testing.T) {
 }
 
 func TestGetURLForProto_HandlesIPv4Address(t *testing.T) {
-	result := getURLForProto("192.168.1.1", protoHTTPS)
+	result := getURLForProto("192.0.2.1", protoHTTPS)
 
-	expected := "https://192.168.1.1"
+	expected := "https://192.0.2.1"
 	if result != expected {
 		t.Errorf("getURLForProto() = %q; want %q", result, expected)
 	}
@@ -503,7 +503,7 @@ func TestGetURLForProto_TableDriven(t *testing.T) {
 		{"http3-simple", "example.com", protoHTTP3, "https://example.com"},
 		{"http1-with-port", "example.com:8080", protoHTTP1, "http://example.com:8080"},
 		{"https-with-port", "example.com:443", protoHTTPS, "https://example.com:443"},
-		{"http1-ipv4", "192.168.1.1", protoHTTP1, "http://192.168.1.1"},
+		{"http1-ipv4", "192.0.2.1", protoHTTP1, "http://192.0.2.1"},
 		{"https-ipv4", "8.8.8.8", protoHTTPS, "https://8.8.8.8"},
 		{"https-ipv6", "[::1]", protoHTTPS, "https://[::1]"},
 		{"https-ipv6-full", "[2001:4860:4860::8888]", protoHTTPS, "https://[2001:4860:4860::8888]"},
