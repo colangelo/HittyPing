@@ -1,6 +1,7 @@
 ---
 name: hp
-description: Use when checking or watching a host's HTTP(S) latency or reachability with hp (hittyping, prettyping for HTTP): run a bounded probe, pick protocol, thresholds or display flags, or read its output (the glyph bar, the stats line, the exit summary and its UP/DOWN timeline). `hp --skill` prints this guide from the binary.
+description: >-
+  Use when checking or watching a host's HTTP(S) latency or reachability with hp (hittyping, prettyping for HTTP): run a bounded probe, pick protocol, thresholds or display flags, or read its output (the glyph bar, the stats line, the exit summary and its UP/DOWN timeline). `hp --skill` prints this guide from the binary.
 ---
 
 # hp: HTTP(S) latency monitor

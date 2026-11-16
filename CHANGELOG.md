@@ -2,6 +2,12 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Agent skill frontmatter: the `description` is a folded block scalar, so strict YAML loaders (Pi, pyyaml) accept it; an unquoted value containing ": " is invalid YAML
+
 ## [0.8.10] - 2026-11-15
 
 ### Fixed
