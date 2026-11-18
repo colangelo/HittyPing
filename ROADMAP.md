@@ -74,6 +74,12 @@ If hp evolves toward interactive features, consider migrating to [Bubble Tea](ht
 
 ## Completed
 
+### v0.8.11 - Braille Odd Runs & Sigstore Bundles
+
+- [x] Last request of an odd braille run drawn as a half cell (#37)
+- [x] Sigstore bundles on releases; verify with `--bundle` (#39)
+- [x] Skill frontmatter is valid YAML for strict loaders (Pi)
+
 ### v0.8.10 - go install & Fuzzing
 
 - [x] Module path matches the repository, so `go install github.com/colangelo/HittyPing@latest` works

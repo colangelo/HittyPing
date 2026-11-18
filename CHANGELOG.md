@@ -2,6 +2,17 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
+## [0.8.11] - 2026-11-18
+
+### Security
+
+- Releases also carry Sigstore bundles (`*.sigstore.json`); `just verify-release`, `just verify-installed` and SECURITY.md verify with `--bundle`, since cosign deprecates `--signature`/`--certificate`. Releases before v0.8.11 fall back to `.sig`/`.pem` (#39)
+
+### Fixed
+
+- Braille mode: the last request of an odd run (`-c 3`, or Ctrl+C after an odd count) is drawn as a half cell; before, it was counted but never shown (#37)
+- Agent skill frontmatter: the `description` is a folded block scalar, so strict YAML loaders (Pi, pyyaml) accept it; an unquoted value containing ": " is invalid YAML
+
 ## [0.8.10] - 2026-11-15
 
 ### Fixed

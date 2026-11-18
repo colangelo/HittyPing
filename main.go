@@ -23,7 +23,7 @@ import (
 // cleanly pause rendering before the process is actually stopped.
 var displayMu sync.Mutex
 
-const version = "0.8.10"
+const version = "0.8.11"
 
 //go:embed skills/hp/SKILL.md
 var skillText string
@@ -173,6 +173,28 @@ func recordResult(s *stats, r result) {
 	default:
 		s.blocks = append(s.blocks, getBlock(rtt))
 	}
+}
+
+// flushPending draws a braille request still waiting for its pair (the
+// last one of an odd run) as a half cell, so every request is on the bar.
+func flushPending(s *stats) {
+	if !s.braille || !s.hasPending {
+		return
+	}
+	s.blocks = append(s.blocks, getBrailleHalf(s.pendingRTT))
+	s.hasPending = false
+}
+
+// getBrailleHalf renders one request in the left column of a braille cell.
+func getBrailleHalf(rtt time.Duration) string {
+	h := getBrailleHeight(rtt)
+	if h < 0 {
+		if brailleFail == failDots {
+			return purple + bold + "⣿" + reset
+		}
+		return red + bold + "!" + reset
+	}
+	return getColorForRTT(rtt) + string(rune(0x2800)+brailleLeft[h]) + reset
 }
 
 // lowerWorkingProto probes each protocol below current, down to minProto,
@@ -335,6 +357,8 @@ func main() {
 	signal.Notify(sigCh, os.Interrupt)
 	go func() {
 		<-sigCh
+		flushPending(s)
+		printDisplay(s)
 		closePeriods(s)
 		if !*o.silent {
 			printFinal(displayURL, s)
@@ -458,6 +482,8 @@ func main() {
 	}
 
 	runFixedRate(*o.count, gap, prepare, handle)
+	flushPending(s)
+	printDisplay(s)
 	closePeriods(s)
 	if !*o.silent {
 		printFinal(displayURL, s)
