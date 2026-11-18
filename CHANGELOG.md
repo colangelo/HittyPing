@@ -2,7 +2,7 @@
 
 All notable changes to hp (hittyping) will be documented in this file.
 
-## [Unreleased]
+## [0.8.11] - 2026-11-18
 
 ### Security
 
