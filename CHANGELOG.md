@@ -4,6 +4,10 @@ All notable changes to hp (hittyping) will be documented in this file.
 
 ## [Unreleased]
 
+### Security
+
+- Releases also carry Sigstore bundles (`*.sigstore.json`); `just verify-release`, `just verify-installed` and SECURITY.md verify with `--bundle`, since cosign deprecates `--signature`/`--certificate`. Releases before v0.8.11 fall back to `.sig`/`.pem` (#39)
+
 ### Fixed
 
 - Braille mode: the last request of an odd run (`-c 3`, or Ctrl+C after an odd count) is drawn as a half cell; before, it was counted but never shown (#37)

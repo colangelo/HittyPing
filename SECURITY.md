@@ -42,10 +42,12 @@ All release binaries are signed with [Sigstore cosign](https://docs.sigstore.dev
 
 Each release includes:
 - `hp-<os>-<arch>` - the binary
-- `hp-<os>-<arch>.sig` - cosign signature
-- `hp-<os>-<arch>.pem` - signing certificate
+- `hp-<os>-<arch>.sigstore.json` - Sigstore bundle: signature and certificate (v0.8.11+)
+- `hp-<os>-<arch>.sig` / `.pem` - cosign signature and certificate (kept for older instructions)
 - `checksums.txt` - SHA256 checksums
-- `checksums.txt.sig` / `checksums.txt.pem` - signed checksums
+- `checksums.txt.sigstore.json`, `checksums.txt.sig` / `.pem` - signed checksums
+
+Releases before v0.8.11 have no `.sigstore.json`: verify them with `--signature "${BIN}.sig" --certificate "${BIN}.pem"` in place of `--bundle`.
 
 ### Option 1: Verify before installing (download from releases)
 
@@ -58,12 +60,10 @@ OS=$(uname -s | tr '[:upper:]' '[:lower:]') && \
 ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') && \
 BIN="hp-${OS}-${ARCH}" && \
 BASE_URL="https://github.com/colangelo/HittyPing/releases/latest/download" && \
-curl -sLO "${BASE_URL}/${BIN}" && \
-curl -sLO "${BASE_URL}/${BIN}.sig" && \
-curl -sLO "${BASE_URL}/${BIN}.pem" && \
+curl -fsSLO "${BASE_URL}/${BIN}" && \
+curl -fsSLO "${BASE_URL}/${BIN}.sigstore.json" && \
 cosign verify-blob \
-  --signature "${BIN}.sig" \
-  --certificate "${BIN}.pem" \
+  --bundle "${BIN}.sigstore.json" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
   "${BIN}"
@@ -84,15 +84,13 @@ OS=$(uname -s | tr '[:upper:]' '[:lower:]') && \
 ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/') && \
 BIN="hp-${OS}-${ARCH}" && \
 BASE_URL="https://github.com/colangelo/HittyPing/releases/download/v${VERSION}" && \
-curl -sLO "${BASE_URL}/${BIN}.sig" && \
-curl -sLO "${BASE_URL}/${BIN}.pem" && \
+curl -fsSLO "${BASE_URL}/${BIN}.sigstore.json" && \
 cosign verify-blob \
-  --signature "${BIN}.sig" \
-  --certificate "${BIN}.pem" \
+  --bundle "${BIN}.sigstore.json" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
   "${HP_PATH}" && \
-rm -f "${BIN}.sig" "${BIN}.pem"
+rm -f "${BIN}.sigstore.json"
 ```
 
 Or if you have the repo cloned: `just verify-installed`

@@ -75,15 +75,16 @@ verify-release:
     cd "$DIR"
     echo "Downloading ${BIN} into ${DIR}..."
     curl -fsSLO "${BASE_URL}/${BIN}"
-    curl -fsSLO "${BASE_URL}/${BIN}.sig"
-    curl -fsSLO "${BASE_URL}/${BIN}.pem"
-    echo "Verifying signature..."
-    cosign verify-blob \
-      --signature "${BIN}.sig" \
-      --certificate "${BIN}.pem" \
-      --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-      --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
-      "${BIN}"
+    ID=(--certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp 'github.com/colangelo/HittyPing')
+    if curl -fsSLO "${BASE_URL}/${BIN}.sigstore.json" 2>/dev/null; then
+      echo "Verifying Sigstore bundle..."
+      cosign verify-blob --bundle "${BIN}.sigstore.json" "${ID[@]}" "${BIN}"
+    else
+      echo "No Sigstore bundle (release before v0.8.11): verifying .sig/.pem..."
+      curl -fsSLO "${BASE_URL}/${BIN}.sig"
+      curl -fsSLO "${BASE_URL}/${BIN}.pem"
+      cosign verify-blob --signature "${BIN}.sig" --certificate "${BIN}.pem" "${ID[@]}" "${BIN}"
+    fi
     chmod +x "${BIN}"
     echo "Verified! Binary: ${DIR}/${BIN}"
 
@@ -119,15 +120,16 @@ verify-installed:
     DIR=$(mktemp -d "${TMP%/}/hp-verify-installed.XXXXXX")
     trap 'rm -rf "$DIR"' EXIT
     echo "Downloading signatures for ${BIN}..."
-    curl -fsSL -o "${DIR}/${BIN}.sig" "${BASE_URL}/${BIN}.sig"
-    curl -fsSL -o "${DIR}/${BIN}.pem" "${BASE_URL}/${BIN}.pem"
-    echo "Verifying..."
-    cosign verify-blob \
-      --signature "${DIR}/${BIN}.sig" \
-      --certificate "${DIR}/${BIN}.pem" \
-      --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-      --certificate-identity-regexp 'github.com/colangelo/HittyPing' \
-      "${HP_PATH}"
+    ID=(--certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp 'github.com/colangelo/HittyPing')
+    if curl -fsSL -o "${DIR}/${BIN}.sigstore.json" "${BASE_URL}/${BIN}.sigstore.json" 2>/dev/null; then
+      echo "Verifying Sigstore bundle..."
+      cosign verify-blob --bundle "${DIR}/${BIN}.sigstore.json" "${ID[@]}" "${HP_PATH}"
+    else
+      echo "No Sigstore bundle (release before v0.8.11): verifying .sig/.pem..."
+      curl -fsSL -o "${DIR}/${BIN}.sig" "${BASE_URL}/${BIN}.sig"
+      curl -fsSL -o "${DIR}/${BIN}.pem" "${BASE_URL}/${BIN}.pem"
+      cosign verify-blob --signature "${DIR}/${BIN}.sig" --certificate "${DIR}/${BIN}.pem" "${ID[@]}" "${HP_PATH}"
+    fi
     echo "Verified! ${HP_PATH} matches signed release v${VERSION}"
 
 # Check that verify-release and verify-installed leave the checkout untouched (needs network, cosign, an installed hp)
