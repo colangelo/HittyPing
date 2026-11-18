@@ -6,6 +6,7 @@ All notable changes to hp (hittyping) will be documented in this file.
 
 ### Fixed
 
+- Braille mode: the last request of an odd run (`-c 3`, or Ctrl+C after an odd count) is drawn as a half cell; before, it was counted but never shown (#37)
 - Agent skill frontmatter: the `description` is a folded block scalar, so strict YAML loaders (Pi, pyyaml) accept it; an unquoted value containing ": " is invalid YAML
 
 ## [0.8.10] - 2026-11-15

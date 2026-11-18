@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"testing"
 	"time"
@@ -840,3 +841,58 @@ func TestHostname(t *testing.T) {
 		}
 	}
 }
+
+// Issue #37: the last request of an odd braille run must still be drawn.
+func TestFlushPending_OddBrailleRunDrawsEveryRequest(t *testing.T) {
+	ok := result{rtt: 50 * time.Millisecond}
+	fail := result{err: errTimeout}
+	tests := []struct {
+		name  string
+		style failStyle
+		runs  []result
+		last  string
+	}{
+		{"success-half-cell", failDots, []result{ok, ok, ok}, green + "⡀" + reset},
+		{"failure-dots", failDots, []result{fail, fail, fail}, purple + bold + "⣿" + reset},
+		{"failure-bang", failBang, []result{fail, fail, fail}, red + bold + "!" + reset},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			withThresholds(0, 150, 400, func() {
+				withFailStyle(tc.style, func() {
+					s := &stats{min: time.Hour, braille: true}
+					for _, r := range tc.runs {
+						recordResult(s, r)
+					}
+					flushPending(s)
+					if len(s.blocks) != 2 {
+						t.Fatalf("3 requests drew %d cells; want 2", len(s.blocks))
+					}
+					if s.blocks[1] != tc.last {
+						t.Errorf("last cell = %q; want %q", s.blocks[1], tc.last)
+					}
+					flushPending(s)
+					if len(s.blocks) != 2 {
+						t.Errorf("second flush drew another cell")
+					}
+				})
+			})
+		})
+	}
+}
+
+func TestFlushPending_EvenRunAndBlockModeUnchanged(t *testing.T) {
+	ok := result{rtt: 50 * time.Millisecond}
+	for _, braille := range []bool{true, false} {
+		s := &stats{min: time.Hour, braille: braille}
+		recordResult(s, ok)
+		recordResult(s, ok)
+		before := len(s.blocks)
+		flushPending(s)
+		if len(s.blocks) != before {
+			t.Errorf("braille=%v: flush after an even run added a cell", braille)
+		}
+	}
+}
+
+var errTimeout = errors.New("timeout")

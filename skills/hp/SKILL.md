@@ -57,7 +57,7 @@ The live stats line reads `failed/total (loss%) lost; min/avg/max ms; last: N ms
 | red | `▆▇█` at or above `--yellow` | `⡇` |
 | failure | red `!` | purple `⣿` (`--fail-style dots`, default) or red `!` (`--fail-style bang`) |
 
-- Braille cells pair two requests (left dot column = older). The cell's color is the slower one's.
+- Braille cells pair two requests (left dot column = older). The cell's color is the slower one's. A request still waiting for its pair when the run ends is drawn as a half cell.
 - `--fail-style dots` (0.8.7+): any cell holding a failure becomes a purple `⣿`.
   `--fail-style bang` (behavior up to 0.8.6): red `!` only when both requests failed; one failure leaves its column
   blank and the cell shows the other request. Block mode ignores `--fail-style`.
@@ -65,7 +65,6 @@ The live stats line reads `failed/total (loss%) lost; min/avg/max ms; last: N ms
   whatever earlier ones are doing, as ping does, so loss % is the share of time the host did not answer. Glyphs are
   drawn in send order: during an outage the bar runs up to `--timeout` behind, while up to timeout ÷ interval
   requests (5 with the defaults) wait in flight.
-- With `-b` and an odd `-c`, the last request is counted in the stats but never drawn.
 
 ## Flags
 
